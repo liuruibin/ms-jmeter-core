@@ -71,9 +71,13 @@ public class SynchronousResultCollector extends AbstractListenerElement implemen
             dto.setReportId(this.reportId);
             dto.setReportType(this.reportType);
             dto.setTestPlanReportId(this.testPlanReportId);
-            Class<?> clazz = Class.forName("io.metersphere.api.jmeter.APISingleResultListener");
-            Object instance = clazz.newInstance();
-            clazz.getDeclaredMethod("testEnded", ResultDTO.class, Map.class).invoke(instance, dto, producerProps);
+            if (StringUtils.isEmpty(this.listenerClazz)) {
+                LoggerUtil.info("JMETER-未找到执行结果监听【" + this.reportId + "】资源【 " + this.testId + " 】执行异常");
+            } else {
+                Class<?> clazz = Class.forName(listenerClazz);
+                Object instance = clazz.newInstance();
+                clazz.getDeclaredMethod("testEnded", ResultDTO.class, Map.class).invoke(instance, dto, producerProps);
+            }
         } catch (Exception e) {
             LoggerUtil.error("JMETER-测试报告【 " + this.reportId + "】资源【 " + this.testId + " 】结果处理失败：" + e.getMessage());
         }
@@ -161,9 +165,13 @@ public class SynchronousResultCollector extends AbstractListenerElement implemen
                     dto.setArbitraryData(new HashMap<String, Object>() {{
                         this.put("ENV", environmentList);
                     }});
-                    Class<?> clazz = Class.forName("io.metersphere.api.jmeter.APISingleResultListener");
-                    Object instance = clazz.newInstance();
-                    clazz.getDeclaredMethod("handleTeardownTest", ResultDTO.class, Map.class).invoke(instance, dto, producerProps);
+                    if (StringUtils.isEmpty(this.listenerClazz)) {
+                        LoggerUtil.info("JMETER-未找到执行结果监听【" + this.reportId + "】资源【 " + this.testId + " 】执行异常");
+                    } else {
+                        Class<?> clazz = Class.forName(listenerClazz);
+                        Object instance = clazz.newInstance();
+                        clazz.getDeclaredMethod("handleTeardownTest", ResultDTO.class, Map.class).invoke(instance, dto, producerProps);
+                    }
                 } catch (Exception e) {
                     LoggerUtil.error("JMETER-调用存储方法失败：" + e.getMessage());
                 }
@@ -173,6 +181,8 @@ public class SynchronousResultCollector extends AbstractListenerElement implemen
 
 
     private String runMode = BackendListenerConstants.RUN.name();
+
+    private String listenerClazz;
 
     // 测试ID
     private String testId;
@@ -213,5 +223,9 @@ public class SynchronousResultCollector extends AbstractListenerElement implemen
 
     public void setRunMode(String runMode) {
         this.runMode = runMode;
+    }
+
+    public void setListenerClazz(String listenerClazz) {
+        this.listenerClazz = listenerClazz;
     }
 }

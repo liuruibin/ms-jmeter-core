@@ -52,7 +52,7 @@ public class JMeterBase {
         LoggerUtil.debug("开始为报告【 " + request.getReportId() + "】，资源【" + request.getTestId() + "】添加BackendListener 结束");
     }
 
-    public static void addSyncListener(JmeterRunRequestDTO request) {
+    public static void addSyncListener(JmeterRunRequestDTO request, String listenerClazz) {
         LoggerUtil.debug("开始为报告【 " + request.getReportId() + "】，资源【" + request.getTestId() + "】添加同步结果监听");
 
         SynchronousResultCollector backendListener = new SynchronousResultCollector();
@@ -62,6 +62,7 @@ public class JMeterBase {
         backendListener.setRunMode(request.getRunMode());
         backendListener.setReportType(request.getReportType());
         backendListener.setTestPlanReportId(request.getTestPlanReportId());
+        backendListener.setListenerClazz(listenerClazz);
         if (request.getKafkaConfig() != null && request.getKafkaConfig().size() > 0) {
             backendListener.setProducerProps(request.getKafkaConfig());
         }
