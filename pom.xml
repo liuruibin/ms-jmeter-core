@@ -20,6 +20,8 @@
 
     <name>ms-jmeter-core</name>
     <description>MeterSphere jmeter core</description>
+    <url>https://github.com/metersphere/ms-jmeter-core</url>
+
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
@@ -27,6 +29,20 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+
+    <scm>
+        <connection>scm:git:https://github.com/fit2cloud/quartz-spring-boot-starter.git</connection>
+        <developerConnection>scm:git:https://github.com/fit2cloud/quartz-spring-boot-starter.git</developerConnection>
+        <url>https://github.com/fit2cloud/quartz-spring-boot-starter</url>
+    </scm>
+
+    <developers>
+        <developer>
+            <name>zhaoyong</name>
+            <email>yong.zhao@fit2cloud.com</email>
+            <organization>http://fit2cloud.com</organization>
+        </developer>
+    </developers>
 
     <dependencies>
         <dependency>
@@ -256,6 +272,57 @@
                     <target>1.8</target>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <!-- 寻找 setting.xml 里配置的密码¬-->
+                <configuration>
+                    <gpgArguments>
+                        <arg>--pinentry-mode</arg>
+                        <arg>loopback</arg>
+                    </gpgArguments>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
+    <distributionManagement>
+        <repository>
+            <id>oss</id>
+            <name>OSS sonatype Repository</name>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+        </repository>
+    </distributionManagement>
 </project>
