@@ -70,6 +70,8 @@ public class SynchronousResultCollector extends AbstractListenerElement implemen
             dto.setRunMode(this.runMode);
             dto.setReportId(this.reportId);
             dto.setReportType(this.reportType);
+            dto.setQueueId(this.queueId);
+            dto.setRunType(this.runType);
             dto.setTestPlanReportId(this.testPlanReportId);
             if (StringUtils.isEmpty(this.listenerClazz)) {
                 listenerClazz = MsExecListener.class.getCanonicalName();
@@ -145,6 +147,8 @@ public class SynchronousResultCollector extends AbstractListenerElement implemen
             dto.setReportId(this.reportId);
             dto.setReportType(this.reportType);
             dto.setTestPlanReportId(this.testPlanReportId);
+            dto.setQueueId(this.queueId);
+            dto.setRunType(this.runType);
             RequestResult requestResult = JMeterBase.getRequestResult(result);
             if (StringUtils.equals(result.getSampleLabel(), RUNNING_DEBUG_SAMPLER_NAME)) {
                 String evnStr = result.getResponseDataAsString();
@@ -191,6 +195,10 @@ public class SynchronousResultCollector extends AbstractListenerElement implemen
 
     private String reportId;
 
+    private String queueId;
+
+    private String runType;
+
     private String testPlanReportId;
 
     // KAFKA 配置信息
@@ -198,6 +206,14 @@ public class SynchronousResultCollector extends AbstractListenerElement implemen
 
     @Override
     public void clearData() {
+    }
+
+    public void setRunType(String runType) {
+        this.runType = runType;
+    }
+
+    public void setQueueId(String queueId) {
+        this.queueId = queueId;
     }
 
     public void setTestId(String testId) {

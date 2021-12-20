@@ -9,6 +9,7 @@ import java.util.Map;
 
 @Data
 public class JmeterRunRequestDTO {
+    private String queueId;
 
     private String runMode;
 
@@ -25,25 +26,30 @@ public class JmeterRunRequestDTO {
     // 是否发送node节点执行
     private BooleanPool pool;
 
-    private RunModeConfigDTO config;
+    private String poolId;
 
-    private HashTree hashTree;
+    // 并行/串行
+    private String runType;
 
     private boolean isDebug;
 
+    private HashTree hashTree;
+
     // 只用在node节点中会用到
     private Map<String, Object> kafkaConfig;
+
     // 只用在node节点中会用到
     private String platformUrl;
 
     public JmeterRunRequestDTO() {
     }
+
     public JmeterRunRequestDTO(String testId, String reportId, String runMode, HashTree hashTree) {
         this.testId = testId;
         this.reportId = reportId;
         this.runMode = runMode;
-        this.hashTree = hashTree;
         this.reportType = RunModeConstants.INDEPENDENCE.name();
+        this.hashTree = hashTree;
         this.pool = new BooleanPool();
     }
 }

@@ -32,7 +32,7 @@ public class JMeterBase {
         return (HashTree) field.get(scriptWrapper);
     }
 
-    public static void addBackendListener(JmeterRunRequestDTO request) {
+    public static void addBackendListener(JmeterRunRequestDTO request, HashTree hashTree) {
         LoggerUtil.debug("开始为报告【 " + request.getReportId() + "】，资源【" + request.getTestId() + "】添加BackendListener");
 
         BackendListener backendListener = new BackendListener();
@@ -48,11 +48,13 @@ public class JMeterBase {
         }
         backendListener.setArguments(arguments);
         backendListener.setClassname(APIBackendListenerClient.class.getCanonicalName());
-        request.getHashTree().add(request.getHashTree().getArray()[0], backendListener);
+        if (hashTree != null) {
+            hashTree.add(hashTree.getArray()[0], backendListener);
+        }
         LoggerUtil.debug("开始为报告【 " + request.getReportId() + "】，资源【" + request.getTestId() + "】添加BackendListener 结束");
     }
 
-    public static void addSyncListener(JmeterRunRequestDTO request, String listenerClazz) {
+    public static void addSyncListener(JmeterRunRequestDTO request, HashTree hashTree, String listenerClazz) {
         LoggerUtil.debug("开始为报告【 " + request.getReportId() + "】，资源【" + request.getTestId() + "】添加同步结果监听");
 
         SynchronousResultCollector backendListener = new SynchronousResultCollector();
@@ -63,13 +65,16 @@ public class JMeterBase {
         backendListener.setReportType(request.getReportType());
         backendListener.setTestPlanReportId(request.getTestPlanReportId());
         backendListener.setListenerClazz(listenerClazz);
+        backendListener.setQueueId(request.getQueueId());
+        backendListener.setRunType(request.getRunType());
         if (request.getKafkaConfig() != null && request.getKafkaConfig().size() > 0) {
             backendListener.setProducerProps(request.getKafkaConfig());
         }
-        request.getHashTree().add(request.getHashTree().getArray()[0], backendListener);
+        if (hashTree != null) {
+            hashTree.add(hashTree.getArray()[0], backendListener);
+        }
         LoggerUtil.debug("开始为报告【 " + request.getReportId() + "】，资源【" + request.getTestId() + "】添加同步结果监听结束");
     }
-
 
     public static RequestResult getRequestResult(SampleResult result) {
         LoggerUtil.debug("开始处理结果资源【" + result.getSampleLabel() + "】");
