@@ -35,6 +35,8 @@ public class JmeterRunRequestDTO {
 
     private HashTree hashTree;
 
+    private int corePoolSize;
+
     // 只用在node节点中会用到
     private Map<String, Object> kafkaConfig;
 
