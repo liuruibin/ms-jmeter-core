@@ -148,9 +148,9 @@ public class JMeterBase {
     private static ResponseAssertionResult getResponseAssertionResult(AssertionResult assertionResult) {
         ResponseAssertionResult responseAssertionResult = new ResponseAssertionResult();
         responseAssertionResult.setName(assertionResult.getName());
-        if (StringUtils.isNotEmpty(assertionResult.getName()) && assertionResult.getName().indexOf("==") != -1) {
+        if (StringUtils.isNotEmpty(assertionResult.getName()) && assertionResult.getName().indexOf("split==") != -1) {
             if (assertionResult.getName().indexOf("JSR223") != -1) {
-                String[] array = assertionResult.getName().split("==", 3);
+                String[] array = assertionResult.getName().split("split==", 3);
                 if ("JSR223".equals(array[0])) {
                     responseAssertionResult.setName(array[1]);
                     if (array[2].indexOf("&&") != -1) {
@@ -164,7 +164,7 @@ public class JMeterBase {
                     }
                 }
             } else {
-                String[] array = assertionResult.getName().split("==");
+                String[] array = assertionResult.getName().split("split==");
                 responseAssertionResult.setName(array[0]);
                 StringBuffer content = new StringBuffer();
                 for (int i = 1; i < array.length; i++) {
