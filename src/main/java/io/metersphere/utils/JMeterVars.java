@@ -23,7 +23,7 @@ public class JMeterVars {
     /**
      * 数据和线程变量保持一致
      */
-    private static Map<Integer, JMeterVariables> variables = new HashMap<>();
+    private static Map<String, JMeterVariables> variables = new HashMap<>();
 
     /**
      * 线程执行过程调用提取变量值
@@ -32,7 +32,7 @@ public class JMeterVars {
      * @param vars
      * @param extract
      */
-    public static void addVars(Integer testId, JMeterVariables vars, String extract) {
+    public static void addVars(String testId, JMeterVariables vars, String extract) {
         JMeterVariables vs = variables.get(testId);
         if (vs == null) {
             vs = new JMeterVariables();
@@ -109,11 +109,11 @@ public class JMeterVars {
         }
     }
 
-    public static JMeterVariables get(Integer key) {
+    public static JMeterVariables get(String key) {
         return variables.get(key);
     }
 
-    public static void remove(Integer key) {
+    public static void remove(String key) {
         variables.remove(key);
     }
 

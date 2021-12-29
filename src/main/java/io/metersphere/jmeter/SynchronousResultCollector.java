@@ -128,16 +128,7 @@ public class SynchronousResultCollector extends AbstractListenerElement implemen
     @Override
     public void sampleOccurred(SampleEvent event) {
         SampleResult result = event.getResult();
-        JMeterVariables variables = JMeterVars.get(result.hashCode());
-        if (variables != null && CollectionUtils.isNotEmpty(variables.entrySet())) {
-            StringBuilder builder = new StringBuilder();
-            for (Map.Entry<String, Object> entry : variables.entrySet()) {
-                builder.append(entry.getKey()).append("：").append(entry.getValue()).append("\n");
-            }
-            if (StringUtils.isNotEmpty(builder)) {
-                result.setExtVars(builder.toString());
-            }
-        }
+        this.setVars(result);
         if (isSampleWanted(result.isSuccessful())) {
             List<RequestResult> requestResults = new LinkedList<>();
             List<String> environmentList = new ArrayList<>();
@@ -154,34 +145,53 @@ public class SynchronousResultCollector extends AbstractListenerElement implemen
                 String evnStr = result.getResponseDataAsString();
                 environmentList.add(evnStr);
             } else {
-                requestResults.add(JMeterBase.getRequestResult(result));
+                requestResults.add(requestResult);
             }
 
             if (LoggerUtil.getLogger().isDebugEnabled()) {
                 LoggerUtil.debug("JMETER-获取到单条执行结果【 " + JSON.toJSONString(dto) + " 】");
             }
-            if (StringUtils.isNotEmpty(requestResult.getName()) && requestResult.getName().startsWith("Transaction=") && CollectionUtils.isEmpty(requestResult.getSubRequestResults())) {
+            if (StringUtils.isNotEmpty(requestResult.getName()) && requestResult.getName().startsWith("Transaction=")) {
                 LoggerUtil.debug("JMETER-获取到RunningDebugSampler 内容 【 " + requestResult + " 】");
+                dto.setRequestResults(requestResult.getSubRequestResults());
             } else {
-                try {
-                    dto.setRequestResults(requestResults);
-                    dto.setArbitraryData(new HashMap<String, Object>() {{
-                        this.put("ENV", environmentList);
-                    }});
+                dto.setRequestResults(requestResults);
+            }
+            try {
+                dto.setArbitraryData(new HashMap<String, Object>() {{
+                    this.put("ENV", environmentList);
+                }});
 
-                    if (StringUtils.isEmpty(this.listenerClazz)) {
-                        listenerClazz = MsExecListener.class.getCanonicalName();
-                    }
-                    Class<?> clazz = Class.forName(listenerClazz);
-                    Object instance = clazz.newInstance();
-                    clazz.getDeclaredMethod("handleTeardownTest", ResultDTO.class, Map.class).invoke(instance, dto, producerProps);
-                } catch (Exception e) {
-                    LoggerUtil.error("JMETER-调用存储方法失败：" + e.getMessage());
+                if (StringUtils.isEmpty(this.listenerClazz)) {
+                    listenerClazz = MsExecListener.class.getCanonicalName();
                 }
+                Class<?> clazz = Class.forName(listenerClazz);
+                Object instance = clazz.newInstance();
+                clazz.getDeclaredMethod("handleTeardownTest", ResultDTO.class, Map.class).invoke(instance, dto, producerProps);
+            } catch (Exception e) {
+                LoggerUtil.error("JMETER-调用存储方法失败：" + e.getMessage());
             }
         }
     }
 
+    private void setVars(SampleResult result) {
+        if (StringUtils.isNotEmpty(result.getSampleLabel()) && result.getSampleLabel().startsWith("Transaction=")) {
+            for (int i = 0; i < result.getSubResults().length; i++) {
+                SampleResult subResult = result.getSubResults()[i];
+                this.setVars(subResult);
+            }
+        }
+        JMeterVariables variables = JMeterVars.get(result.getResourceId());
+        if (variables != null && CollectionUtils.isNotEmpty(variables.entrySet())) {
+            StringBuilder builder = new StringBuilder();
+            for (Map.Entry<String, Object> entry : variables.entrySet()) {
+                builder.append(entry.getKey()).append("：").append(entry.getValue()).append("\n");
+            }
+            if (StringUtils.isNotEmpty(builder)) {
+                result.setExtVars(builder.toString());
+            }
+        }
+    }
 
     private String runMode = BackendListenerConstants.RUN.name();
 

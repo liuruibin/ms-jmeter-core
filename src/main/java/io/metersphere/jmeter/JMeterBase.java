@@ -112,10 +112,10 @@ public class JMeterBase {
         responseResult.setResponseSize(result.getResponseData().length);
         responseResult.setResponseTime(result.getTime());
         responseResult.setResponseMessage(result.getResponseMessage());
-        JMeterVariables variables = JMeterVars.get(result.hashCode());
+        JMeterVariables variables = JMeterVars.get(result.getResourceId());
         if (StringUtils.isNotEmpty(result.getExtVars())) {
             responseResult.setVars(result.getExtVars());
-            JMeterVars.remove(result.hashCode());
+            JMeterVars.remove(result.getResourceId());
         } else if (variables != null && CollectionUtils.isNotEmpty(variables.entrySet())) {
             StringBuilder builder = new StringBuilder();
             for (Map.Entry<String, Object> entry : variables.entrySet()) {
@@ -124,7 +124,7 @@ public class JMeterBase {
             if (StringUtils.isNotEmpty(builder)) {
                 responseResult.setVars(builder.toString());
             }
-            JMeterVars.remove(result.hashCode());
+            JMeterVars.remove(result.getResourceId());
         }
 
         for (AssertionResult assertionResult : result.getAssertionResults()) {
@@ -151,10 +151,10 @@ public class JMeterBase {
         if (StringUtils.isNotEmpty(assertionResult.getName()) && assertionResult.getName().indexOf("split==") != -1) {
             if (assertionResult.getName().indexOf("JSR223") != -1) {
                 String[] array = assertionResult.getName().split("split==", 3);
-                if ("JSR223".equals(array[0])) {
+                if (array.length > 2 && "JSR223".equals(array[0])) {
                     responseAssertionResult.setName(array[1]);
-                    if (array[2].indexOf("&&") != -1) {
-                        String[] content = array[2].split("&&");
+                    if (array[2].indexOf("split&&") != -1) {
+                        String[] content = array[2].split("split&&");
                         responseAssertionResult.setContent(content[0]);
                         if (content.length > 1) {
                             responseAssertionResult.setScript(content[1]);

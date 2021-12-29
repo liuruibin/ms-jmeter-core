@@ -557,7 +557,7 @@ public class JMeterThread implements Runnable, Interruptible {
             if (CollectionUtils.isNotEmpty(sampleListeners)) {
                 for (SampleListener sampleListener : sampleListeners) {
                     try {
-                        if (sampleListener != null && StringUtils.equals(sampleListener.getClass().getSimpleName(), "MsResultCollector")) {
+                        if (sampleListener != null && StringUtils.equals(sampleListener.getClass().getSimpleName(), "MsDebugListener")) {
                             SampleEvent event = new SampleEvent(null, current.getPropertyAsString("MS-RESOURCE-ID"), threadVars);
                             sampleListener.sampleStarted(event);
                             break;
