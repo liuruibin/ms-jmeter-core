@@ -6,14 +6,14 @@
 
     <groupId>io.metersphere</groupId>
     <artifactId>ms-jmeter-core</artifactId>
-    <version>1.0.5</version>
+    <version>1.0.6</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
         <jmeter.version>5.4.3</jmeter.version>
-        <nacos.version>1.1.3</nacos.version>
-        <dubbo.version>2.7.8</dubbo.version>
+        <nacos.version>1.4.1</nacos.version>
+        <dubbo.version>2.7.9</dubbo.version>
         <groovy.version>3.0.8</groovy.version>
         <metersphere-jmeter-functions.version>1.4</metersphere-jmeter-functions.version>
     </properties>
@@ -180,9 +180,20 @@
         </dependency>
 
         <dependency>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+            <version>1.9.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.12.0</version>
+        </dependency>
+
+        <dependency>
             <groupId>io.metersphere</groupId>
             <artifactId>jmeter-plugins-dubbo</artifactId>
-            <version>2.7.13</version>
+            <version>2.7.14</version>
         </dependency>
 
         <!-- ApacheJMeter_core scope 是 runtime，这里去掉scope -->
