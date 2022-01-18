@@ -5,6 +5,7 @@ import io.metersphere.vo.BooleanPool;
 import lombok.Data;
 import org.apache.jorphan.collections.HashTree;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Data
@@ -73,6 +74,11 @@ public class JmeterRunRequestDTO {
     private Map<String, Object> kafkaConfig;
 
     /**
+     * 增加一个全局扩展的通传参数
+     */
+    private Map<String, Object> extendedParameters;
+
+    /**
      * 平台服务地址只用在node节点中会用到
      */
     private String platformUrl;
@@ -87,5 +93,6 @@ public class JmeterRunRequestDTO {
         this.reportType = RunModeConstants.INDEPENDENCE.name();
         this.hashTree = hashTree;
         this.pool = new BooleanPool();
+        this.extendedParameters = new LinkedHashMap<>();
     }
 }

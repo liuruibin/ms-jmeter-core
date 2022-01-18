@@ -67,6 +67,8 @@ public class JMeterBase {
         backendListener.setListenerClazz(listenerClazz);
         backendListener.setQueueId(request.getQueueId());
         backendListener.setRunType(request.getRunType());
+        backendListener.setExtendedParameters(request.getExtendedParameters());
+
         if (request.getKafkaConfig() != null && request.getKafkaConfig().size() > 0) {
             backendListener.setProducerProps(request.getKafkaConfig());
         }

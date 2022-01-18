@@ -17,6 +17,10 @@ public class ResultDTO {
     private String runType;
     private String console;
     private String runningDebugSampler;
+    /**
+     * 增加一个全局扩展的通传参数
+     */
+    private Map<String, Object> extendedParameters;
 
     // 预留一个参数，可以放任何数据
     private Map<String, Object> arbitraryData;

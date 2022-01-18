@@ -75,6 +75,7 @@ public class SynchronousResultCollector extends AbstractListenerElement implemen
             dto.setReportType(this.reportType);
             dto.setQueueId(this.queueId);
             dto.setRunType(this.runType);
+            dto.setExtendedParameters(this.extendedParameters);
             dto.setTestPlanReportId(this.testPlanReportId);
             if (StringUtils.isEmpty(this.listenerClazz)) {
                 listenerClazz = MsExecListener.class.getCanonicalName();
@@ -141,6 +142,7 @@ public class SynchronousResultCollector extends AbstractListenerElement implemen
             dto.setReportId(this.reportId);
             dto.setReportType(this.reportType);
             dto.setTestPlanReportId(this.testPlanReportId);
+            dto.setExtendedParameters(this.extendedParameters);
             dto.setQueueId(this.queueId);
             dto.setRunType(this.runType);
             RequestResult requestResult = JMeterBase.getRequestResult(result);
@@ -149,7 +151,7 @@ public class SynchronousResultCollector extends AbstractListenerElement implemen
                 environmentList.add(evnStr);
             } else {
                 boolean resultNotFilterOut = this.checkResultIsNotFilterOut(requestResult);
-                if(resultNotFilterOut){
+                if (resultNotFilterOut) {
                     requestResults.add(requestResult);
                 }
             }
@@ -182,15 +184,16 @@ public class SynchronousResultCollector extends AbstractListenerElement implemen
 
     /**
      * 判断结果是否需要被过滤
+     *
      * @param result
      * @return
      */
     private boolean checkResultIsNotFilterOut(RequestResult result) {
         boolean resultNotFilterOut = true;
-        if(StringUtils.startsWithAny(result.getName(),PRE_PROCESS_SCRIPT)){
-            resultNotFilterOut = Boolean.parseBoolean(StringUtils.substring(result.getName(),PRE_PROCESS_SCRIPT.length()));
-        }else if(StringUtils.startsWithAny(result.getName(),POST_PROCESS_SCRIPT)){
-            resultNotFilterOut = Boolean.parseBoolean(StringUtils.substring(result.getName(),POST_PROCESS_SCRIPT.length()));
+        if (StringUtils.startsWithAny(result.getName(), PRE_PROCESS_SCRIPT)) {
+            resultNotFilterOut = Boolean.parseBoolean(StringUtils.substring(result.getName(), PRE_PROCESS_SCRIPT.length()));
+        } else if (StringUtils.startsWithAny(result.getName(), POST_PROCESS_SCRIPT)) {
+            resultNotFilterOut = Boolean.parseBoolean(StringUtils.substring(result.getName(), POST_PROCESS_SCRIPT.length()));
         }
         return resultNotFilterOut;
     }
@@ -214,6 +217,10 @@ public class SynchronousResultCollector extends AbstractListenerElement implemen
         }
     }
 
+    @Override
+    public void clearData() {
+    }
+
     private String runMode = BackendListenerConstants.RUN.name();
 
     private String listenerClazz;
@@ -235,9 +242,7 @@ public class SynchronousResultCollector extends AbstractListenerElement implemen
     // KAFKA 配置信息
     private Map<String, Object> producerProps;
 
-    @Override
-    public void clearData() {
-    }
+    private Map<String, Object> extendedParameters;
 
     public void setRunType(String runType) {
         this.runType = runType;
@@ -273,5 +278,9 @@ public class SynchronousResultCollector extends AbstractListenerElement implemen
 
     public void setListenerClazz(String listenerClazz) {
         this.listenerClazz = listenerClazz;
+    }
+
+    public void setExtendedParameters(Map<String, Object> extendedParameters) {
+        this.extendedParameters = extendedParameters;
     }
 }
