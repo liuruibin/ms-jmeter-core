@@ -6,6 +6,7 @@ import io.metersphere.vo.Condition;
 import io.metersphere.vo.ElementCondition;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.jmeter.util.JMeterUtils;
 import org.apache.oro.text.regex.Pattern;
 
@@ -25,10 +26,10 @@ public class DocumentUtils {
                     String resValue = objectToString(subj, decimalFormatter);
                     switch (item.getKey()) {
                         case "value_eq":
-                            isTrue = StringUtils.equals(resValue, expectedValue);
+                            isTrue = valueEquals(resValue, expectedValue);
                             break;
                         case "value_not_eq":
-                            isTrue = !StringUtils.equals(resValue, expectedValue);
+                            isTrue = valueNotEquals(resValue, expectedValue);
                             break;
                         case "value_in":
                             isTrue = StringUtils.contains(resValue, expectedValue);
@@ -58,6 +59,26 @@ public class DocumentUtils {
             return isTrue;
         }
         return true;
+    }
+
+    private static boolean valueEquals(String v1, String v2) {
+        try {
+            Number number1 = NumberUtils.createNumber(v1);
+            Number number2 = NumberUtils.createNumber(v2);
+            return number1.equals(number2);
+        } catch (Exception e) {
+            return StringUtils.equals(v1, v2);
+        }
+    }
+
+    private static boolean valueNotEquals(String v1, String v2) {
+        try {
+            Number number1 = NumberUtils.createNumber(v1);
+            Number number2 = NumberUtils.createNumber(v2);
+            return !number1.equals(number2);
+        } catch (Exception e) {
+            return !StringUtils.equals(v1, v2);
+        }
     }
 
     public static String objectToString(Object subj, ThreadLocal<DecimalFormat> decimalFormatter) {
