@@ -48,6 +48,9 @@ public class SynchronousResultCollector extends AbstractListenerElement implemen
 
     public static final String RUNNING_DEBUG_SAMPLER_NAME = "RunningDebugSampler";
 
+    private static final String PRE_PROCESS_SCRIPT = "PRE_PROCESSOR_ENV_";
+    private static final String POST_PROCESS_SCRIPT = "POST_PROCESSOR_ENV_";
+
     @Override
     public Object clone() {
         SynchronousResultCollector clone = (SynchronousResultCollector) super.clone();
@@ -145,7 +148,10 @@ public class SynchronousResultCollector extends AbstractListenerElement implemen
                 String evnStr = result.getResponseDataAsString();
                 environmentList.add(evnStr);
             } else {
-                requestResults.add(requestResult);
+                boolean resultNotFilterOut = this.checkResultIsNotFilterOut(requestResult);
+                if(resultNotFilterOut){
+                    requestResults.add(requestResult);
+                }
             }
 
             if (LoggerUtil.getLogger().isDebugEnabled()) {
@@ -172,6 +178,21 @@ public class SynchronousResultCollector extends AbstractListenerElement implemen
                 LoggerUtil.error("JMETER-调用存储方法失败：" + e.getMessage());
             }
         }
+    }
+
+    /**
+     * 判断结果是否需要被过滤
+     * @param result
+     * @return
+     */
+    private boolean checkResultIsNotFilterOut(RequestResult result) {
+        boolean resultNotFilterOut = true;
+        if(StringUtils.startsWithAny(result.getName(),PRE_PROCESS_SCRIPT)){
+            resultNotFilterOut = Boolean.parseBoolean(StringUtils.substring(result.getName(),PRE_PROCESS_SCRIPT.length()));
+        }else if(StringUtils.startsWithAny(result.getName(),POST_PROCESS_SCRIPT)){
+            resultNotFilterOut = Boolean.parseBoolean(StringUtils.substring(result.getName(),POST_PROCESS_SCRIPT.length()));
+        }
+        return resultNotFilterOut;
     }
 
     private void setVars(SampleResult result) {
