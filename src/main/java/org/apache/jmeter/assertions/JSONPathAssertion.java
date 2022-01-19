@@ -10,6 +10,7 @@ import com.jayway.jsonpath.Predicate;
 import io.metersphere.utils.DocumentUtils;
 import net.minidev.json.JSONArray;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.testelement.AbstractTestElement;
 import org.apache.jmeter.testelement.ThreadListener;
@@ -197,10 +198,10 @@ public class JSONPathAssertion extends AbstractTestElement implements Serializab
                         refFlag = !str.contains(getExpectedValue());
                         break;
                     case "EQUALS":
-                        refFlag = str.equals(getExpectedValue());
+                        refFlag = valueEquals(str, getExpectedValue());
                         break;
                     case "NOT_EQUALS":
-                        refFlag = !str.equals(getExpectedValue());
+                        refFlag = valueNotEquals(str, getExpectedValue());
                         break;
                     case "GT":
                         refFlag = isGt(str, getExpectedValue());
@@ -218,6 +219,25 @@ public class JSONPathAssertion extends AbstractTestElement implements Serializab
         }
     }
 
+    private static boolean valueEquals(String v1, String v2) {
+        try {
+            Number number1 = NumberUtils.createNumber(v1);
+            Number number2 = NumberUtils.createNumber(v2);
+            return number1.equals(number2);
+        } catch (Exception e) {
+            return StringUtils.equals(v1, v2);
+        }
+    }
+
+    private static boolean valueNotEquals(String v1, String v2) {
+        try {
+            Number number1 = NumberUtils.createNumber(v1);
+            Number number2 = NumberUtils.createNumber(v2);
+            return !number1.equals(number2);
+        } catch (Exception e) {
+            return !StringUtils.equals(v1, v2);
+        }
+    }
 
     public AssertionResult getResult(SampleResult samplerResult) {
         AssertionResult result = new AssertionResult(this.getName());
