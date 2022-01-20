@@ -20,7 +20,7 @@ public class DocumentUtils {
     public static boolean documentChecked(Object subj, String condition, ThreadLocal<DecimalFormat> decimalFormatter) {
         if (StringUtils.isNotEmpty(condition)) {
             ElementCondition elementCondition = JSON.parseObject(condition, ElementCondition.class);
-            boolean isTrue = checkType(elementCondition, subj);
+            boolean isTrue = true;
             if (CollectionUtils.isNotEmpty(elementCondition.getConditions())) {
                 for (Condition item : elementCondition.getConditions()) {
                     String expectedValue = item.getValue() != null ? item.getValue().toString() : "";
@@ -57,7 +57,7 @@ public class DocumentUtils {
                     }
                 }
             }
-            return isTrue;
+            return isTrue && checkType(elementCondition, subj);
         }
         return true;
     }
@@ -169,7 +169,7 @@ public class DocumentUtils {
                 }
             }
             if (!checkType(elementCondition, resValue)) {
-                msg = " 类型：" + getType(resValue) + ", " + msg;
+                msg = " 类型：" + getType(resValue) + ", 值：" + msg;
             }
         }
         return (StringUtils.isNotEmpty(name) ? name.split("==")[1] : "") + "校验失败，实际返回：" + msg;
