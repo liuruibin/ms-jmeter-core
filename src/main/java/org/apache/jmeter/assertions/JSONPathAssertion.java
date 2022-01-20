@@ -137,7 +137,7 @@ public class JSONPathAssertion extends AbstractTestElement implements Serializab
                             msg = "Value < '%s', but found '%s'";
                             break;
                         case "DOCUMENT":
-                            msg = (StringUtils.isNotEmpty(this.getName()) ? this.getName().split("==")[1] : "") + "校验失败，实际返回：" + DocumentUtils.documentMsg(value, this.getElementCondition());
+                            msg = DocumentUtils.documentMsg(this.getName(), value, this.getElementCondition());
                             break;
                     }
                 } else {

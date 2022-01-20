@@ -10,6 +10,7 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.jmeter.util.JMeterUtils;
 import org.apache.oro.text.regex.Pattern;
 
+import java.lang.reflect.Array;
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +20,7 @@ public class DocumentUtils {
     public static boolean documentChecked(Object subj, String condition, ThreadLocal<DecimalFormat> decimalFormatter) {
         if (StringUtils.isNotEmpty(condition)) {
             ElementCondition elementCondition = JSON.parseObject(condition, ElementCondition.class);
-            boolean isTrue = true;
+            boolean isTrue = checkType(elementCondition, subj);
             if (CollectionUtils.isNotEmpty(elementCondition.getConditions())) {
                 for (Condition item : elementCondition.getConditions()) {
                     String expectedValue = item.getValue() != null ? item.getValue().toString() : "";
@@ -59,6 +60,26 @@ public class DocumentUtils {
             return isTrue;
         }
         return true;
+    }
+
+    public static boolean checkType(ElementCondition elementCondition, Object subj) {
+        if (elementCondition.isTypeVerification()) {
+            return StringUtils.equalsIgnoreCase(elementCondition.getType(), "object") || (subj != null
+                    && StringUtils.equalsIgnoreCase(elementCondition.getType(), getType(subj)));
+        }
+        return true;
+    }
+
+    public static String getType(Object object) {
+        String type = object.getClass().getName().substring(object.getClass().getName().lastIndexOf(".") + 1);
+        if (StringUtils.equalsIgnoreCase("Integer", type)) {
+            return type;
+        } else if (StringUtils.equalsAnyIgnoreCase(type, "integer", "float", "long", "double")) {
+            return "Number";
+        } else if (StringUtils.indexOfAny(type, "Array", "List") != -1) {
+            return "Array";
+        }
+        return type;
     }
 
     private static boolean valueEquals(String v1, String v2) {
@@ -132,7 +153,7 @@ public class DocumentUtils {
         return 0;
     }
 
-    public static String documentMsg(Object resValue, String condition) {
+    public static String documentMsg(String name, Object resValue, String condition) {
         String msg = "";
         if (StringUtils.isNotEmpty(condition)) {
             ElementCondition elementCondition = JSON.parseObject(condition, ElementCondition.class);
@@ -147,7 +168,10 @@ public class DocumentUtils {
                     }
                 }
             }
+            if (!checkType(elementCondition, resValue)) {
+                msg = " 类型：" + getType(resValue) + ", " + msg;
+            }
         }
-        return msg;
+        return (StringUtils.isNotEmpty(name) ? name.split("==")[1] : "") + "校验失败，实际返回：" + msg;
     }
 }

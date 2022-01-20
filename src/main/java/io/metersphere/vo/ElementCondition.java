@@ -9,6 +9,8 @@ public class ElementCondition {
     private boolean include;
     private boolean typeVerification;
     private boolean arrayVerification;
+    private String type;
+
     List<Condition> conditions;
 
     public ElementCondition() {

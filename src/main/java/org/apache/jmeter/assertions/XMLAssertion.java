@@ -135,7 +135,7 @@ public class XMLAssertion extends AbstractTestElement implements Serializable, A
             }
         }
         if (!this.isEquals(value)) {
-            String msg = (StringUtils.isNotEmpty(this.getName()) ? this.getName().split("==")[1] : "") + "校验失败，实际返回：" + DocumentUtils.documentMsg(value, this.getCondition());
+            String msg = DocumentUtils.documentMsg(this.getName(), value, this.getCondition());
             throw new IllegalStateException(String.format(msg, this.getExpectedValue(), DocumentUtils.objectToString(value, decimalFormatter)));
         }
     }
