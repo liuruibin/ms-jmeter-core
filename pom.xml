@@ -193,7 +193,7 @@
         <dependency>
             <groupId>io.metersphere</groupId>
             <artifactId>jmeter-plugins-dubbo</artifactId>
-            <version>2.7.14</version>
+            <version>2.7.15</version>
         </dependency>
 
         <!-- ApacheJMeter_core scope 是 runtime，这里去掉scope -->
