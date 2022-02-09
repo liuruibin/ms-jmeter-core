@@ -168,7 +168,7 @@ public class JSONPathAssertion extends AbstractTestElement implements Serializab
 
     private boolean isGt(String v1, String v2) {
         try {
-            return Long.parseLong(v1) > Long.parseLong(v2);
+            return v1.compareTo(v2) > 0;
         } catch (Exception e) {
             return false;
         }
@@ -176,7 +176,7 @@ public class JSONPathAssertion extends AbstractTestElement implements Serializab
 
     private boolean isLt(String v1, String v2) {
         try {
-            return Long.parseLong(v1) < Long.parseLong(v2);
+            return v1.compareTo(v2) < 0;
         } catch (Exception e) {
             return false;
         }
