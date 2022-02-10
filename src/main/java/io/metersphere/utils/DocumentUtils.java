@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.google.gson.Gson;
 import io.metersphere.vo.Condition;
 import io.metersphere.vo.ElementCondition;
+import net.minidev.json.JSONArray;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -73,13 +74,13 @@ public class DocumentUtils {
     public static String getType(Object object) {
         String type = object.getClass().getName().substring(object.getClass().getName().lastIndexOf(".") + 1);
         if (StringUtils.equalsIgnoreCase("Integer", type)) {
-            return type;
+            return type.toLowerCase();
         } else if (StringUtils.equalsAnyIgnoreCase(type, "integer", "float", "long", "double")) {
-            return "Number";
+            return "number";
         } else if (StringUtils.indexOfAny(type, "Array", "List") != -1) {
-            return "Array";
+            return "array";
         }
-        return type;
+        return type.toLowerCase();
     }
 
     private static boolean valueEquals(String v1, String v2) {
@@ -153,6 +154,21 @@ public class DocumentUtils {
         return 0;
     }
 
+    private static String arrayMatched(JSONArray value) {
+        if (value.isEmpty()) {
+            return "array";
+        } else {
+            Object[] var2 = value.toArray();
+            int var3 = var2.length;
+
+            for (int var4 = 0; var4 < var3; ++var4) {
+                Object subj = var2[var4];
+                return getType(subj);
+            }
+        }
+        return getType(value);
+    }
+
     public static String documentMsg(String name, Object resValue, String condition) {
         String msg = "";
         if (StringUtils.isNotEmpty(condition)) {
@@ -169,7 +185,11 @@ public class DocumentUtils {
                 }
             }
             if (!checkType(elementCondition, resValue)) {
-                msg = " 类型：" + getType(resValue) + ", 值：" + msg;
+                if (resValue instanceof JSONArray) {
+                    msg = " 类型：" + (arrayMatched((JSONArray) resValue)) + ", 值：" + msg;
+                } else {
+                    msg = " 类型：" + getType(resValue) + ", 值：" + msg;
+                }
             }
         }
         return (StringUtils.isNotEmpty(name) ? name.split("==")[1] : "") + "校验失败，实际返回：" + msg;
