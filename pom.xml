@@ -203,6 +203,12 @@
             <version>2.7.15</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>hessian-lite</artifactId>
+            <version>3.2.12</version>
+        </dependency>
+
         <!-- ApacheJMeter_core scope 是 runtime，这里去掉scope -->
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
