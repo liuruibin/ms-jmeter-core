@@ -18,26 +18,11 @@
 
 package org.apache.jmeter.util;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Properties;
-
-import javax.script.Bindings;
-import javax.script.Compilable;
-import javax.script.CompiledScript;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
-
 import groovy.lang.GroovyClassLoader;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.map.LRUMap;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.MethodUtils;
 import org.apache.jmeter.NewDriver;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.samplers.Sampler;
@@ -49,6 +34,12 @@ import org.apache.jorphan.util.JOrphanUtils;
 import org.codehaus.groovy.jsr223.GroovyScriptEngineImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.script.*;
+import java.io.*;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Properties;
 
 
 /**
@@ -201,7 +192,9 @@ public abstract class JSR223TestElement extends ScriptingTestElement
         ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         // 将当前类加载器设置为 loader ，解决由系统类加载器加载的 JMeter 无法动态加载 jar 包问题
         // 同时隔离在 beanshell 中访问由系统类加载器加载的其他类
-        NewDriver.setContextClassLoader();
+        if (MethodUtils.getAccessibleMethod(NewDriver.class, "setContextClassLoader") != null) {
+            NewDriver.setContextClassLoader();
+        }
 
         try {
             if (!StringUtils.isEmpty(getFilename())) {
