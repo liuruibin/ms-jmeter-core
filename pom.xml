@@ -262,6 +262,22 @@
             <artifactId>commons-collections</artifactId>
             <version>3.2.2</version>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpmime -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpmime</artifactId>
+            <version>4.5.10</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.brotli/dec -->
+        <dependency>
+            <groupId>org.brotli</groupId>
+            <artifactId>dec</artifactId>
+            <version>0.1.2</version>
+        </dependency>
+
+
         <!-- 添加jmeter包支持导入的jmx能正常执行 -->
         <dependency>
             <groupId>com.jayway.jsonpath</groupId>
