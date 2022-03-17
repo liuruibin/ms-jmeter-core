@@ -11,6 +11,7 @@ import io.metersphere.utils.JMeterVars;
 import io.metersphere.utils.LoggerUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.entity.ContentType;
 import org.apache.jmeter.assertions.AssertionResult;
 import org.apache.jmeter.protocol.http.sampler.HTTPSampleResult;
 import org.apache.jmeter.samplers.SampleResult;
@@ -107,7 +108,14 @@ public class JMeterBase {
             requestResult.getSubRequestResults().add(getRequestResult(subResult));
         }
         ResponseResult responseResult = requestResult.getResponseResult();
-        responseResult.setBody(result.getResponseDataAsString());
+        // 超过20M的文件不入库
+        long size = 1024 * 1024 * 20;
+        if (StringUtils.equals(ContentType.APPLICATION_OCTET_STREAM.getMimeType(), result.getContentType())
+                && result.getResponseDataAsString().length() > size) {
+            requestResult.setBody("");
+        } else {
+            responseResult.setBody(result.getResponseDataAsString());
+        }
         responseResult.setHeaders(result.getResponseHeaders());
         responseResult.setLatency(result.getLatency());
         responseResult.setResponseCode(result.getResponseCode());
