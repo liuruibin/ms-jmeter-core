@@ -111,6 +111,7 @@ public class JMeterBase {
         // 超过20M的文件不入库
         long size = 1024 * 1024 * 20;
         if (StringUtils.equals(ContentType.APPLICATION_OCTET_STREAM.getMimeType(), result.getContentType())
+                && StringUtils.isNotEmpty(result.getResponseDataAsString())
                 && result.getResponseDataAsString().length() > size) {
             requestResult.setBody("");
         } else {
