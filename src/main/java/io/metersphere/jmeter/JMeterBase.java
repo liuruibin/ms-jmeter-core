@@ -10,6 +10,7 @@ import io.metersphere.dto.ResponseResult;
 import io.metersphere.utils.JMeterVars;
 import io.metersphere.utils.LoggerUtil;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.entity.ContentType;
 import org.apache.jmeter.assertions.AssertionResult;
@@ -33,17 +34,24 @@ public class JMeterBase {
         return (HashTree) field.get(scriptWrapper);
     }
 
-    public static void addBackendListener(JmeterRunRequestDTO request, HashTree hashTree) {
+    public static void addBackendListener(JmeterRunRequestDTO request, HashTree hashTree,String listenerClazz) {
         LoggerUtil.debug("开始为报告【 " + request.getReportId() + "】，资源【" + request.getTestId() + "】添加BackendListener");
 
         BackendListener backendListener = new BackendListener();
         backendListener.setName(request.getReportId() + "_" + request.getTestId());
         Arguments arguments = new Arguments();
-        arguments.addArgument(BackendListenerConstants.TEST_ID.name(), request.getTestId());
+        arguments.addArgument(BackendListenerConstants.NAME.name(), request.getReportId() + "_" + request.getTestId());
         arguments.addArgument(BackendListenerConstants.REPORT_ID.name(), request.getReportId());
+        arguments.addArgument(BackendListenerConstants.TEST_ID.name(), request.getTestId());
         arguments.addArgument(BackendListenerConstants.RUN_MODE.name(), request.getRunMode());
         arguments.addArgument(BackendListenerConstants.REPORT_TYPE.name(), request.getReportType());
         arguments.addArgument(BackendListenerConstants.MS_TEST_PLAN_REPORT_ID.name(), request.getTestPlanReportId());
+        arguments.addArgument(BackendListenerConstants.CLASS_NAME.name(), listenerClazz);
+        arguments.addArgument(BackendListenerConstants.QUEUE_ID.name(), request.getQueueId());
+        arguments.addArgument(BackendListenerConstants.RUN_TYPE.name(), request.getRunType());
+        if (MapUtils.isNotEmpty(request.getExtendedParameters())) {
+            arguments.addArgument(BackendListenerConstants.EPT.name(), JSON.toJSONString(request.getExtendedParameters()));
+        }
         if (request.getKafkaConfig() != null && request.getKafkaConfig().size() > 0) {
             arguments.addArgument(BackendListenerConstants.KAFKA_CONFIG.name(), JSON.toJSONString(request.getKafkaConfig()));
         }

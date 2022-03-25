@@ -21,7 +21,9 @@ import com.alibaba.fastjson.JSON;
 import io.metersphere.constants.BackendListenerConstants;
 import io.metersphere.dto.RequestResult;
 import io.metersphere.dto.ResultDTO;
+import io.metersphere.utils.ClassLoaderUtil;
 import io.metersphere.utils.JMeterVars;
+import io.metersphere.utils.ListenerUtil;
 import io.metersphere.utils.LoggerUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -39,17 +41,6 @@ import java.util.*;
  */
 public class SynchronousResultCollector extends AbstractListenerElement implements SampleListener, Clearable, Serializable,
         TestStateListener, Remoteable, NoThreadClone {
-
-    private static final String ERROR_LOGGING = "MsResultCollector.error_logging";
-
-    private static final String TEST_IS_LOCAL = "*local*";
-
-    private static final String SUCCESS_ONLY_LOGGING = "MsResultCollector.success_only_logging";
-
-    public static final String RUNNING_DEBUG_SAMPLER_NAME = "RunningDebugSampler";
-
-    private static final String PRE_PROCESS_SCRIPT = "PRE_PROCESSOR_ENV_";
-    private static final String POST_PROCESS_SCRIPT = "POST_PROCESSOR_ENV_";
 
     @Override
     public Object clone() {
@@ -80,7 +71,7 @@ public class SynchronousResultCollector extends AbstractListenerElement implemen
             if (StringUtils.isEmpty(this.listenerClazz)) {
                 listenerClazz = MsExecListener.class.getCanonicalName();
             }
-            Class<?> clazz = Class.forName(listenerClazz);
+            Class<?> clazz = ClassLoaderUtil.getClass(listenerClazz);
             Object instance = clazz.newInstance();
             clazz.getDeclaredMethod("testEnded", ResultDTO.class, Map.class).invoke(instance, dto, producerProps);
         } catch (Exception e) {
@@ -99,12 +90,12 @@ public class SynchronousResultCollector extends AbstractListenerElement implemen
 
     @Override
     public void testEnded() {
-        testEnded(TEST_IS_LOCAL);
+        testEnded(ListenerUtil.TEST_IS_LOCAL);
     }
 
     @Override
     public void testStarted() {
-        testStarted(TEST_IS_LOCAL);
+        testStarted(ListenerUtil.TEST_IS_LOCAL);
     }
 
     @Override
@@ -116,11 +107,11 @@ public class SynchronousResultCollector extends AbstractListenerElement implemen
     }
 
     public boolean isErrorLogging() {
-        return getPropertyAsBoolean(ERROR_LOGGING);
+        return getPropertyAsBoolean(ListenerUtil.ERROR_LOGGING);
     }
 
     public boolean isSuccessOnlyLogging() {
-        return getPropertyAsBoolean(SUCCESS_ONLY_LOGGING, false);
+        return getPropertyAsBoolean(ListenerUtil.SUCCESS_ONLY_LOGGING, false);
     }
 
     public boolean isSampleWanted(boolean success) {
@@ -132,7 +123,7 @@ public class SynchronousResultCollector extends AbstractListenerElement implemen
     @Override
     public void sampleOccurred(SampleEvent event) {
         SampleResult result = event.getResult();
-        this.setVars(result);
+        ListenerUtil.setVars(result);
         if (isSampleWanted(result.isSuccessful())) {
             List<RequestResult> requestResults = new LinkedList<>();
             List<String> environmentList = new ArrayList<>();
@@ -146,11 +137,11 @@ public class SynchronousResultCollector extends AbstractListenerElement implemen
             dto.setQueueId(this.queueId);
             dto.setRunType(this.runType);
             RequestResult requestResult = JMeterBase.getRequestResult(result);
-            if (StringUtils.equals(result.getSampleLabel(), RUNNING_DEBUG_SAMPLER_NAME)) {
+            if (StringUtils.equals(result.getSampleLabel(), ListenerUtil.RUNNING_DEBUG_SAMPLER_NAME)) {
                 String evnStr = result.getResponseDataAsString();
                 environmentList.add(evnStr);
             } else {
-                boolean resultNotFilterOut = this.checkResultIsNotFilterOut(requestResult);
+                boolean resultNotFilterOut = ListenerUtil.checkResultIsNotFilterOut(requestResult);
                 if (resultNotFilterOut) {
                     requestResults.add(requestResult);
                 }
@@ -166,53 +157,15 @@ public class SynchronousResultCollector extends AbstractListenerElement implemen
                 dto.setRequestResults(requestResults);
             }
             try {
-                dto.setArbitraryData(new HashMap<String, Object>() {{
-                    this.put("ENV", environmentList);
-                }});
-
+                ListenerUtil.setEev(dto, environmentList);
                 if (StringUtils.isEmpty(this.listenerClazz)) {
                     listenerClazz = MsExecListener.class.getCanonicalName();
                 }
-                Class<?> clazz = Class.forName(listenerClazz);
+                Class<?> clazz = ClassLoaderUtil.getClass(listenerClazz);
                 Object instance = clazz.newInstance();
                 clazz.getDeclaredMethod("handleTeardownTest", ResultDTO.class, Map.class).invoke(instance, dto, producerProps);
             } catch (Exception e) {
                 LoggerUtil.error("JMETER-调用存储方法失败：" + e.getMessage());
-            }
-        }
-    }
-
-    /**
-     * 判断结果是否需要被过滤
-     *
-     * @param result
-     * @return
-     */
-    private boolean checkResultIsNotFilterOut(RequestResult result) {
-        boolean resultNotFilterOut = true;
-        if (StringUtils.startsWithAny(result.getName(), PRE_PROCESS_SCRIPT)) {
-            resultNotFilterOut = Boolean.parseBoolean(StringUtils.substring(result.getName(), PRE_PROCESS_SCRIPT.length()));
-        } else if (StringUtils.startsWithAny(result.getName(), POST_PROCESS_SCRIPT)) {
-            resultNotFilterOut = Boolean.parseBoolean(StringUtils.substring(result.getName(), POST_PROCESS_SCRIPT.length()));
-        }
-        return resultNotFilterOut;
-    }
-
-    private void setVars(SampleResult result) {
-        if (StringUtils.isNotEmpty(result.getSampleLabel()) && result.getSampleLabel().startsWith("Transaction=")) {
-            for (int i = 0; i < result.getSubResults().length; i++) {
-                SampleResult subResult = result.getSubResults()[i];
-                this.setVars(subResult);
-            }
-        }
-        JMeterVariables variables = JMeterVars.get(result.getResourceId());
-        if (variables != null && CollectionUtils.isNotEmpty(variables.entrySet())) {
-            StringBuilder builder = new StringBuilder();
-            for (Map.Entry<String, Object> entry : variables.entrySet()) {
-                builder.append(entry.getKey()).append("：").append(entry.getValue()).append("\n");
-            }
-            if (StringUtils.isNotEmpty(builder)) {
-                result.setExtVars(builder.toString());
             }
         }
     }
