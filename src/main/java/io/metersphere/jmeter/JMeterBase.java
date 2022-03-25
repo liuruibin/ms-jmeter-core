@@ -3,10 +3,7 @@ package io.metersphere.jmeter;
 import com.alibaba.fastjson.JSON;
 import io.metersphere.constants.BackendListenerConstants;
 import io.metersphere.constants.HttpMethodConstants;
-import io.metersphere.dto.JmeterRunRequestDTO;
-import io.metersphere.dto.RequestResult;
-import io.metersphere.dto.ResponseAssertionResult;
-import io.metersphere.dto.ResponseResult;
+import io.metersphere.dto.*;
 import io.metersphere.utils.JMeterVars;
 import io.metersphere.utils.LoggerUtil;
 import org.apache.commons.collections4.CollectionUtils;
@@ -165,7 +162,14 @@ public class JMeterBase {
     }
 
     private static ResponseAssertionResult getResponseAssertionResult(AssertionResult assertionResult) {
-        ResponseAssertionResult responseAssertionResult = new ResponseAssertionResult();
+        ResponseAssertionResult responseAssertionResult = null;
+
+        if(StringUtils.startsWith(assertionResult.getName(),"ErrorReportAssertion")){
+            responseAssertionResult = new ErrorReportAssertionResult(assertionResult.getFailureMessage());
+        }else {
+            responseAssertionResult = new ResponseAssertionResult();
+        }
+
         responseAssertionResult.setName(assertionResult.getName());
         if (StringUtils.isNotEmpty(assertionResult.getName()) && assertionResult.getName().indexOf("split==") != -1) {
             if (assertionResult.getName().indexOf("JSR223") != -1) {
