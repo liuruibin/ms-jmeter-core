@@ -9,6 +9,7 @@ import io.metersphere.utils.ListenerUtil;
 import io.metersphere.utils.LoggerUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.samplers.SampleResult;
+import org.apache.jmeter.services.FileServer;
 import org.apache.jmeter.visualizers.backend.AbstractBackendListenerClient;
 import org.apache.jmeter.visualizers.backend.BackendListenerContext;
 
@@ -72,6 +73,9 @@ public class APIBackendListenerClient extends AbstractBackendListenerClient impl
     @Override
     public void teardownTest(BackendListenerContext context) throws Exception {
         try {
+            if (FileServer.getFileServer() != null) {
+                FileServer.getFileServer().closeCsv(dto.getReportId());
+            }
             LoggerUtil.info("JMETER-测试报告【" + dto.getReportId() + "】资源【 " + dto.getTestId() + " 】执行结束");
             Class<?> clazz = ClassLoaderUtil.getClass(listenerClazz);
             Object instance = clazz.newInstance();

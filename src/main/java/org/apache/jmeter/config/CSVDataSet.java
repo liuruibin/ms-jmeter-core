@@ -102,6 +102,8 @@ public class CSVDataSet extends ConfigTestElement
 
     private boolean ignoreFirstLine = false;
 
+    private final static String THREAD_SPLIT = " ";
+
     private Object readResolve() {
         recycle = true;
         return this;
@@ -221,15 +223,16 @@ public class CSVDataSet extends ConfigTestElement
     private void setAlias(final JMeterContext context, String alias) {
         String mode = getShareMode();
         int modeInt = CSVDataSetBeanInfo.getShareModeAsInt(mode);
+        String threadName = StringUtils.substringBeforeLast(context.getThread().getThreadName(), THREAD_SPLIT);
         switch (modeInt) {
             case CSVDataSetBeanInfo.SHARE_ALL:
                 this.alias = alias;
                 break;
             case CSVDataSetBeanInfo.SHARE_GROUP:
-                this.alias = alias + "@" + System.identityHashCode(context.getThreadGroup());
+                this.alias = alias + "@" + "GROUP_" + threadName;
                 break;
             case CSVDataSetBeanInfo.SHARE_THREAD:
-                this.alias = alias + "@" + System.identityHashCode(context.getThread());
+                this.alias = alias + "@" + threadName;
                 break;
             default:
                 this.alias = alias + "@" + mode; // user-specified key
