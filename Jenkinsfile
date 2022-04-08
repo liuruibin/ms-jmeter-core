@@ -14,12 +14,4 @@ pipeline {
             }
         }
     }
-    post('Notification') {
-        always {
-            sh "echo \$WEBHOOK\n"
-            withCredentials([string(credentialsId: 'wechat-bot-webhook', variable: 'WEBHOOK')]) {
-                qyWechatNotification failSend: true, mentionedId: '', mentionedMobile: '', webhookUrl: "$WEBHOOK"
-            }
-        }
-    }
 }
