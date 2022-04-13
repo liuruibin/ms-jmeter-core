@@ -1,6 +1,7 @@
 package io.metersphere.jmeter;
 
 import com.alibaba.fastjson.JSON;
+import io.metersphere.cache.JMeterEngineCache;
 import io.metersphere.constants.BackendListenerConstants;
 import io.metersphere.dto.RequestResult;
 import io.metersphere.dto.ResultDTO;
@@ -82,6 +83,10 @@ public class APIBackendListenerClient extends AbstractBackendListenerClient impl
             clazz.getDeclaredMethod("testEnded", ResultDTO.class, Map.class).invoke(instance, dto, producerProps);
         } catch (Exception e) {
             LoggerUtil.error("JMETER-测试报告【" + dto.getReportId() + "】资源【 " + dto.getTestId() + " 】执行异常", e);
+        } finally {
+            if (JMeterEngineCache.runningEngine.containsKey(dto.getReportId())) {
+                JMeterEngineCache.runningEngine.remove(dto.getReportId());
+            }
         }
         super.teardownTest(context);
     }
