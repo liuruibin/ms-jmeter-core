@@ -8,5 +8,6 @@ public class ErrorReportAssertionResult  extends  ResponseAssertionResult{
 
     public ErrorReportAssertionResult(String errorReportMessage){
         this.errorReportMessage = errorReportMessage;
+        this.setMessage(errorReportMessage);
     }
 }
