@@ -17,6 +17,7 @@
 
 package org.apache.jmeter.threads;
 
+import io.metersphere.constants.BackendListenerConstants;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.assertions.Assertion;
@@ -552,18 +553,21 @@ public class JMeterThread implements Runnable, Interruptible {
         SampleResult result = null;
         if (running) {
             Sampler sampler = pack.getSampler();
+
             // 执行前发给监听
-            List<SampleListener> sampleListeners = pack.getSampleListeners();
-            if (CollectionUtils.isNotEmpty(sampleListeners)) {
-                for (SampleListener sampleListener : sampleListeners) {
-                    try {
-                        if (sampleListener != null && StringUtils.equals(sampleListener.getClass().getSimpleName(), "MsDebugListener")) {
-                            SampleEvent event = new SampleEvent(null, current.getPropertyAsString("MS-RESOURCE-ID"), threadVars);
-                            sampleListener.sampleStarted(event);
-                            break;
+            if (this.threadGroup != null && this.threadGroup.getPropertyAsBoolean(BackendListenerConstants.MS_DEBUG.name())) {
+                List<SampleListener> sampleListeners = pack.getSampleListeners();
+                if (CollectionUtils.isNotEmpty(sampleListeners)) {
+                    for (SampleListener sampleListener : sampleListeners) {
+                        try {
+                            if (sampleListener != null && StringUtils.equals(sampleListener.getClass().getSimpleName(), "MsDebugListener")) {
+                                SampleEvent event = new SampleEvent(null, current.getPropertyAsString("MS-RESOURCE-ID"), threadVars);
+                                sampleListener.sampleStarted(event);
+                                break;
+                            }
+                        } catch (RuntimeException e) {
+                            log.error("自定义提前发送监听失败.", e);
                         }
-                    } catch (RuntimeException e) {
-                        log.error("自定义提前发送监听失败.", e);
                     }
                 }
             }
@@ -622,11 +626,11 @@ public class JMeterThread implements Runnable, Interruptible {
     /**
      * Call sample on Sampler handling:
      * <ul>
-     *  <li>setting up ThreadContext</li>
-     *  <li>initializing sampler if needed</li>
-     *  <li>positioning currentSamplerForInterruption for potential interruption</li>
-     *  <li>Playing SampleMonitor before and after sampling</li>
-     *  <li>resetting currentSamplerForInterruption</li>
+     * <li>setting up ThreadContext</li>
+     * <li>initializing sampler if needed</li>
+     * <li>positioning currentSamplerForInterruption for potential interruption</li>
+     * <li>Playing SampleMonitor before and after sampling</li>
+     * <li>resetting currentSamplerForInterruption</li>
      * </ul>
      *
      * @param threadContext {@link JMeterContext}

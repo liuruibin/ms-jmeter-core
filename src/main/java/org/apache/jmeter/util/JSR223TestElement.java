@@ -18,7 +18,8 @@
 
 package org.apache.jmeter.util;
 
-import groovy.lang.GroovyClassLoader;
+import io.metersphere.jmeter.LoadJarService;
+import io.metersphere.utils.LoggerUtil;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.map.LRUMap;
 import org.apache.commons.lang3.StringUtils;
@@ -51,6 +52,8 @@ import java.util.Properties;
 public abstract class JSR223TestElement extends ScriptingTestElement
         implements Serializable, TestStateListener {
     private static final long serialVersionUID = 232L;
+
+    private LoadJarService loadJarService;
 
     private static final Logger logger = LoggerFactory.getLogger(JSR223TestElement.class);
     /**
@@ -170,11 +173,17 @@ public abstract class JSR223TestElement extends ScriptingTestElement
         if (scriptEngine instanceof GroovyScriptEngineImpl) {
             try {
                 GroovyScriptEngineImpl groovyScriptEngine = (GroovyScriptEngineImpl) scriptEngine;
-                Class<?> clazz = Class.forName("io.metersphere.api.jmeter.GroovyLoadJarService");
-                Object instance = clazz.newInstance();
-                clazz.getDeclaredMethod("loadGroovyJar", GroovyClassLoader.class).invoke(instance, groovyScriptEngine.getClassLoader());
+                if (loadJarService == null) {
+                    loadJarService = Class.forName("io.metersphere.api.jmeter.MsGroovyLoadJarService", true,
+                            Thread.currentThread().getContextClassLoader())
+                            .asSubclass(LoadJarService.class)
+                            .getDeclaredConstructor().newInstance();
+                    if (loadJarService != null) {
+                        loadJarService.loadGroovyJar(groovyScriptEngine.getClassLoader());
+                    }
+                }
             } catch (Exception e) {
-                logger.error("加载jar失败：", e.getMessage());
+                LoggerUtil.error("加载Groovy jar失败：", e);
             }
         }
 

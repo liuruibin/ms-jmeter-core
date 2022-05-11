@@ -476,7 +476,7 @@ public class FileServer {
      * @param name
      * @throws IOException
      */
-    public synchronized void closeCsv(String name) throws IOException {
+    public void closeCsv(String name) throws IOException {
         if (StringUtils.isNotEmpty(name)) {
             for (Iterator<String> iterator = files.keySet().iterator(); iterator.hasNext(); ) {
                 String key = iterator.next();
@@ -487,6 +487,10 @@ public class FileServer {
                 }
             }
         }
+    }
+
+    public int fileSize() {
+        return files.size();
     }
 
     /**

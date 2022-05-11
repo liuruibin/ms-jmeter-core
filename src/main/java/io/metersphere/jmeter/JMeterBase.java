@@ -5,6 +5,7 @@ import io.metersphere.constants.BackendListenerConstants;
 import io.metersphere.constants.HttpMethodConstants;
 import io.metersphere.dto.*;
 import io.metersphere.utils.JMeterVars;
+import io.metersphere.utils.ListenerUtil;
 import io.metersphere.utils.LoggerUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -19,6 +20,9 @@ import org.apache.jorphan.collections.HashTree;
 import org.apache.jmeter.config.Arguments;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 public class JMeterBase {
@@ -31,7 +35,7 @@ public class JMeterBase {
         return (HashTree) field.get(scriptWrapper);
     }
 
-    public static void addBackendListener(JmeterRunRequestDTO request, HashTree hashTree,String listenerClazz) {
+    public static void addBackendListener(JmeterRunRequestDTO request, HashTree hashTree, String listenerClazz) {
         LoggerUtil.debug("开始为报告【 " + request.getReportId() + "】，资源【" + request.getTestId() + "】添加BackendListener");
 
         BackendListener backendListener = new BackendListener();
@@ -53,35 +57,11 @@ public class JMeterBase {
             arguments.addArgument(BackendListenerConstants.KAFKA_CONFIG.name(), JSON.toJSONString(request.getKafkaConfig()));
         }
         backendListener.setArguments(arguments);
-        backendListener.setClassname(APIBackendListenerClient.class.getCanonicalName());
+        backendListener.setClassname(MsBackendListenerClient.class.getCanonicalName());
         if (hashTree != null) {
             hashTree.add(hashTree.getArray()[0], backendListener);
         }
         LoggerUtil.debug("开始为报告【 " + request.getReportId() + "】，资源【" + request.getTestId() + "】添加BackendListener 结束");
-    }
-
-    public static void addSyncListener(JmeterRunRequestDTO request, HashTree hashTree, String listenerClazz) {
-        LoggerUtil.debug("开始为报告【 " + request.getReportId() + "】，资源【" + request.getTestId() + "】添加同步结果监听");
-
-        SynchronousResultCollector backendListener = new SynchronousResultCollector();
-        backendListener.setName(request.getReportId() + "_" + request.getTestId());
-        backendListener.setReportId(request.getReportId());
-        backendListener.setTestId(request.getTestId());
-        backendListener.setRunMode(request.getRunMode());
-        backendListener.setReportType(request.getReportType());
-        backendListener.setTestPlanReportId(request.getTestPlanReportId());
-        backendListener.setListenerClazz(listenerClazz);
-        backendListener.setQueueId(request.getQueueId());
-        backendListener.setRunType(request.getRunType());
-        backendListener.setExtendedParameters(request.getExtendedParameters());
-
-        if (request.getKafkaConfig() != null && request.getKafkaConfig().size() > 0) {
-            backendListener.setProducerProps(request.getKafkaConfig());
-        }
-        if (hashTree != null) {
-            hashTree.add(hashTree.getArray()[0], backendListener);
-        }
-        LoggerUtil.debug("开始为报告【 " + request.getReportId() + "】，资源【" + request.getTestId() + "】添加同步结果监听结束");
     }
 
     public static RequestResult getRequestResult(SampleResult result) {
@@ -164,9 +144,9 @@ public class JMeterBase {
     private static ResponseAssertionResult getResponseAssertionResult(AssertionResult assertionResult) {
         ResponseAssertionResult responseAssertionResult = null;
 
-        if(StringUtils.startsWith(assertionResult.getName(),"ErrorReportAssertion")){
+        if (StringUtils.startsWith(assertionResult.getName(), "ErrorReportAssertion")) {
             responseAssertionResult = new ErrorReportAssertionResult(assertionResult.getFailureMessage());
-        }else {
+        } else {
             responseAssertionResult = new ResponseAssertionResult();
         }
 
@@ -223,6 +203,40 @@ public class JMeterBase {
                 }
             }
             return "Request";
+        }
+    }
+
+    /**
+     * 执行结果数据转化
+     *
+     * @param sampleResults
+     * @param dto
+     */
+    public static void resultFormatting(List<SampleResult> sampleResults, ResultDTO dto) {
+        try {
+            List<RequestResult> requestResults = new LinkedList<>();
+            List<String> environmentList = new ArrayList<>();
+            sampleResults.forEach(result -> {
+                ListenerUtil.setVars(result);
+                RequestResult requestResult = JMeterBase.getRequestResult(result);
+                if (StringUtils.equals(result.getSampleLabel(), ListenerUtil.RUNNING_DEBUG_SAMPLER_NAME)) {
+                    String evnStr = result.getResponseDataAsString();
+                    environmentList.add(evnStr);
+                } else {
+                    boolean resultNotFilterOut = ListenerUtil.checkResultIsNotFilterOut(requestResult);
+                    if (resultNotFilterOut) {
+                        if (StringUtils.isNotEmpty(requestResult.getName()) && requestResult.getName().startsWith("Transaction=")) {
+                            requestResults.addAll(requestResult.getSubRequestResults());
+                        } else {
+                            requestResults.add(requestResult);
+                        }
+                    }
+                }
+            });
+            dto.setRequestResults(requestResults);
+            ListenerUtil.setEev(dto, environmentList);
+        } catch (Exception e) {
+            LoggerUtil.error("JMETER-调用存储方法失败：" + e.getMessage());
         }
     }
 }
