@@ -6,7 +6,7 @@
 
     <groupId>io.metersphere</groupId>
     <artifactId>ms-jmeter-core</artifactId>
-    <version>1.1.7</version>
+    <version>1.1.8</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -81,11 +81,11 @@
             <version>2.6</version>
         </dependency>
 
-
+        <!-- 2.7.2 版本在大批量执行中会造成阻塞 -->
         <dependency>
             <groupId>org.python</groupId>
             <artifactId>jython-standalone</artifactId>
-            <version>2.7.2</version>
+            <version>2.7.0</version>
         </dependency>
 
         <dependency>

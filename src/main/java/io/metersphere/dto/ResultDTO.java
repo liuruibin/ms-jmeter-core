@@ -17,6 +17,8 @@ public class ResultDTO {
     private String runType;
     private String console;
     private String runningDebugSampler;
+    // 失败重试
+    private boolean retryEnable;
     /**
      * 增加一个全局扩展的通传参数
      */

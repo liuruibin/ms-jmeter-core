@@ -12,18 +12,16 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.entity.ContentType;
 import org.apache.jmeter.assertions.AssertionResult;
+import org.apache.jmeter.config.Arguments;
 import org.apache.jmeter.protocol.http.sampler.HTTPSampleResult;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.threads.JMeterVariables;
 import org.apache.jmeter.visualizers.backend.BackendListener;
 import org.apache.jorphan.collections.HashTree;
-import org.apache.jmeter.config.Arguments;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class JMeterBase {
 
@@ -50,6 +48,7 @@ public class JMeterBase {
         arguments.addArgument(BackendListenerConstants.CLASS_NAME.name(), listenerClazz);
         arguments.addArgument(BackendListenerConstants.QUEUE_ID.name(), request.getQueueId());
         arguments.addArgument(BackendListenerConstants.RUN_TYPE.name(), request.getRunType());
+        arguments.addArgument(BackendListenerConstants.RETRY_ENABLE.name(), String.valueOf(request.isRetryEnable()));
         if (MapUtils.isNotEmpty(request.getExtendedParameters())) {
             arguments.addArgument(BackendListenerConstants.EPT.name(), JSON.toJSONString(request.getExtendedParameters()));
         }
@@ -238,5 +237,30 @@ public class JMeterBase {
         } catch (Exception e) {
             LoggerUtil.error("JMETER-调用存储方法失败：" + e.getMessage());
         }
+    }
+
+    /**
+     * 合并掉重试结果；保留最后一次重试结果
+     *
+     * @param results
+     */
+    public static void mergeRetryResults(List<SampleResult> results) {
+        if (CollectionUtils.isNotEmpty(results)) {
+            Map<String, List<SampleResult>> resultMap = results.stream().collect(Collectors.groupingBy(SampleResult::getResourceId));
+            List<SampleResult> list = new LinkedList<>();
+            resultMap.forEach((k, v) -> {
+                if (CollectionUtils.isNotEmpty(v) && v.size() > 1) {
+                    Collections.sort(v, Comparator.comparing(SampleResult::getResourceId));
+                    SampleResult sampleResult = v.get(v.size() - 1);
+                    sampleResult.setSampleLabel(v.get(0).getSampleLabel());
+                    list.add(sampleResult);
+                } else {
+                    list.addAll(v);
+                }
+            });
+            results.clear();
+            results.addAll(list);
+        }
+
     }
 }

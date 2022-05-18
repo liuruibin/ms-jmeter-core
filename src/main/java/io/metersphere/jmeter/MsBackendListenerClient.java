@@ -53,7 +53,7 @@ public class MsBackendListenerClient extends AbstractBackendListenerClient imple
             }
             LoggerUtil.info("报告【" + dto.getReportId() + "】资源【 " + dto.getTestId() + " 】开始调用存储方法");
             execListener.testEnded(dto, producerProps);
-            LoggerUtil.info("JMETER测试报告【" + dto.getReportId() + "】资源【 " + dto.getTestId() + " 】执行结束");
+            LoggerUtil.info("JMETER-测试报告【" + dto.getReportId() + "】资源【 " + dto.getTestId() + " 】执行结束");
             super.teardownTest(context);
         } catch (Exception e) {
             LoggerUtil.error("JMETER-测试报告【" + dto.getReportId() + "】资源【 " + dto.getTestId() + " 】执行异常", e);
@@ -76,6 +76,9 @@ public class MsBackendListenerClient extends AbstractBackendListenerClient imple
         dto.setReportId(context.getParameter(BackendListenerConstants.REPORT_ID.name()));
         dto.setReportType(context.getParameter(BackendListenerConstants.REPORT_TYPE.name()));
         dto.setTestPlanReportId(context.getParameter(BackendListenerConstants.MS_TEST_PLAN_REPORT_ID.name()));
+        if (context.getParameter(BackendListenerConstants.RETRY_ENABLE.name()) != null) {
+            dto.setRetryEnable(Boolean.parseBoolean(context.getParameter(BackendListenerConstants.RETRY_ENABLE.name())));
+        }
         this.producerProps = new HashMap<>();
 
         if (StringUtils.isNotEmpty(context.getParameter(BackendListenerConstants.KAFKA_CONFIG.name()))) {
