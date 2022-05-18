@@ -241,7 +241,12 @@ public class TestPlan extends AbstractTestElement implements Serializable, TestS
             if (JMeterEngineCache.runningEngine.containsKey(threadName)) {
                 JMeterEngineCache.runningEngine.remove(threadName);
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
+            try {
+                FileServer.getFileServer().closeFiles();
+            } catch (IOException ex) {
+                log.error("Problem closing files at end of test", ex);
+            }
             log.error("Problem closing files at end of test", e);
         }
         log.info("Test plan " + this.getName() + "test end");

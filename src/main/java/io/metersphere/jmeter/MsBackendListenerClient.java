@@ -48,12 +48,13 @@ public class MsBackendListenerClient extends AbstractBackendListenerClient imple
     public void teardownTest(BackendListenerContext context) {
         try {
             if (FileServer.getFileServer() != null) {
+                LoggerUtil.info("报告【" + dto.getReportId() + "】资源【 " + dto.getTestId() + " 】开始关闭CSV");
                 FileServer.getFileServer().closeCsv(dto.getReportId());
             }
-            super.teardownTest(context);
-
-            LoggerUtil.info("JMETER测试报告【" + dto.getReportId() + "】资源【 " + dto.getTestId() + " 】执行结束");
+            LoggerUtil.info("报告【" + dto.getReportId() + "】资源【 " + dto.getTestId() + " 】开始调用存储方法");
             execListener.testEnded(dto, producerProps);
+            LoggerUtil.info("JMETER测试报告【" + dto.getReportId() + "】资源【 " + dto.getTestId() + " 】执行结束");
+            super.teardownTest(context);
         } catch (Exception e) {
             LoggerUtil.error("JMETER-测试报告【" + dto.getReportId() + "】资源【 " + dto.getTestId() + " 】执行异常", e);
         } finally {

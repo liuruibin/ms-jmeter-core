@@ -17,6 +17,8 @@
 
 package org.apache.jmeter.services;
 
+import io.metersphere.utils.LoggerUtil;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.gui.JMeterFileFilter;
@@ -28,10 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.util.ArrayDeque;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -476,16 +475,27 @@ public class FileServer {
      * @param name
      * @throws IOException
      */
-    public void closeCsv(String name) throws IOException {
-        if (StringUtils.isNotEmpty(name)) {
-            for (Iterator<String> iterator = files.keySet().iterator(); iterator.hasNext(); ) {
-                String key = iterator.next();
-                if (key.contains(name)) {
-                    FileEntry fileEntry = files.get(key);
-                    closeFile(name, fileEntry);
-                    iterator.remove();
+    public void closeCsv(String name) {
+        try {
+            if (StringUtils.isNotEmpty(name)) {
+                List<String> list = new ArrayList<>();
+                for (Iterator<String> iterator = files.keySet().iterator(); iterator.hasNext(); ) {
+                    String key = iterator.next();
+                    if (key.contains(name)) {
+                        FileEntry fileEntry = files.get(key);
+                        closeFile(name, fileEntry);
+                        list.add(key);
+                    }
+                }
+                if (CollectionUtils.isNotEmpty(list)) {
+                    for (String key : list) {
+                        files.remove(key);
+                    }
                 }
             }
+            LoggerUtil.info("在处理中的CSV数量：" + files.size());
+        } catch (Exception e) {
+            LoggerUtil.error("关闭CSV异常：" + name, e);
         }
     }
 

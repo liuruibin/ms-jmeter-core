@@ -14,6 +14,11 @@ public class RunModeConfigDTO {
     private String testId;
     private String amassReport;
     private boolean onSampleError;
+    // 失败重试
+    private boolean retryEnable;
+    // 失败重试次数
+    private long retryNum;
+    // 资源池
     private String resourcePoolId;
     private BaseSystemConfigDTO baseInfo;
     private List<JvmInfoDTO> testResources;

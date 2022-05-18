@@ -83,6 +83,12 @@ public class JmeterRunRequestDTO {
      */
     private String platformUrl;
 
+    // 失败重试
+    private boolean retryEnable;
+
+    // 失败重试次数
+    private long retryNum;
+
     public JmeterRunRequestDTO() {
     }
 
