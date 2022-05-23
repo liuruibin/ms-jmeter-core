@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -66,7 +67,7 @@ public class FileServer {
 
     private File base;
 
-    private final Map<String, FileEntry> files = new HashMap<>();
+    private final Map<String, FileEntry> files = new ConcurrentHashMap<>();
 
     private static final FileServer server = new FileServer();
 
@@ -278,6 +279,7 @@ public class FileServer {
         return fileEntry.headerLine;
     }
 
+
     /**
      * Resolves file name into {@link File} instance.
      * When filename is not absolute and not found from current working dir,
@@ -472,10 +474,9 @@ public class FileServer {
     /**
      * 根据线程名字清理掉当前线程缓存的csv
      *
-     * @param name
-     * @throws IOException
+     * @param name 线程组名称
      */
-    public void closeCsv(String name) {
+    public synchronized void closeCsv(String name) {
         try {
             if (StringUtils.isNotEmpty(name)) {
                 List<String> list = new ArrayList<>();

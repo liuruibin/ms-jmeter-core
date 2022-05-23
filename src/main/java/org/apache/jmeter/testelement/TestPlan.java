@@ -17,9 +17,7 @@
 
 package org.apache.jmeter.testelement;
 
-import io.metersphere.cache.JMeterEngineCache;
 import io.metersphere.utils.LoggerUtil;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.NewDriver;
 import org.apache.jmeter.config.Arguments;
 import org.apache.jmeter.services.FileServer;
@@ -31,7 +29,6 @@ import org.apache.jorphan.util.JOrphanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -232,24 +229,6 @@ public class TestPlan extends AbstractTestElement implements Serializable, TestS
      */
     @Override
     public void testEnded() {
-        try {
-            String threadName = StringUtils.substringBeforeLast(this.getThreadName(), " ");
-            if (FileServer.getFileServer() != null && StringUtils.isNotEmpty(this.getThreadName())) {
-                FileServer.getFileServer().closeCsv(threadName);
-                LoggerUtil.info("测试计划执行完成：【" + threadName + "】 还存在CSV数量：" + FileServer.getFileServer().fileSize());
-            }
-            if (JMeterEngineCache.runningEngine.containsKey(threadName)) {
-                JMeterEngineCache.runningEngine.remove(threadName);
-            }
-        } catch (Exception e) {
-            try {
-                FileServer.getFileServer().closeFiles();
-            } catch (IOException ex) {
-                log.error("Problem closing files at end of test", ex);
-            }
-            log.error("Problem closing files at end of test", e);
-        }
-        log.info("Test plan " + this.getName() + "test end");
         LoggerUtil.info("测试计划执行结束：" + this.getName() + " 还存在CSV数量：" + FileServer.getFileServer().fileSize());
 
     }

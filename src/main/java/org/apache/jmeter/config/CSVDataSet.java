@@ -17,6 +17,7 @@
 
 package org.apache.jmeter.config;
 
+import io.metersphere.utils.LoggerUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.engine.event.LoopIterationEvent;
 import org.apache.jmeter.engine.event.LoopIterationListener;
@@ -151,7 +152,7 @@ public class CSVDataSet extends ConfigTestElement
                 // This could perhaps be a variable name
                 log.warn("Could not translate {}={} using Locale: {}", propName, propValue, rb.getLocale());
             } catch (IntrospectionException e) {
-                log.error("Could not find BeanInfo; cannot translate shareMode entries", e);
+                LoggerUtil.error("Could not find BeanInfo; cannot translate shareMode entries", e);
             }
         }
         super.setProperty(property);
@@ -168,9 +169,9 @@ public class CSVDataSet extends ConfigTestElement
             log.debug("Empty delimiter, will use ','");
             delim = ",";
         }
-        //if (vars == null) {
-        initVars(server, context, delim);
-        //}
+        if (vars == null) {
+            initVars(server, context, delim);
+        }
 
         // TODO: fetch this once as per vars above?
         JMeterVariables threadVars = context.getVariables();
@@ -188,7 +189,7 @@ public class CSVDataSet extends ConfigTestElement
                 threadVars.put(vars[a], lineValues[a]);
             }
         } catch (IOException e) { // treat the same as EOF
-            log.error(e.toString());
+            LoggerUtil.error(e.toString());
         }
         if (lineValues.length == 0) {// i.e. EOF
             if (getStopThread()) {
@@ -203,6 +204,7 @@ public class CSVDataSet extends ConfigTestElement
 
     private void initVars(FileServer server, final JMeterContext context, String delim) {
         String fileName = getFilename().trim();
+        LoggerUtil.info("初始化csv内容：" + fileName);
         setAlias(context, fileName);
         final String names = getVariableNames();
         if (StringUtils.isEmpty(names)) {
@@ -229,10 +231,10 @@ public class CSVDataSet extends ConfigTestElement
                 this.alias = alias;
                 break;
             case CSVDataSetBeanInfo.SHARE_GROUP:
-                this.alias = alias + "@" + "GROUP_" + threadName;
+                this.alias = alias + "@" + "GROUP_" + threadName + "@" + System.identityHashCode(context.getThreadGroup());
                 break;
             case CSVDataSetBeanInfo.SHARE_THREAD:
-                this.alias = alias + "@" + threadName;
+                this.alias = alias + "@" + threadName + "@" + System.identityHashCode(context.getThread());
                 break;
             default:
                 this.alias = alias + "@" + mode; // user-specified key
