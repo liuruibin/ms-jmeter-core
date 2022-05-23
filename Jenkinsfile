@@ -9,7 +9,7 @@ pipeline {
         stage('Build/Test') {
             steps {
                 configFileProvider([configFile(fileId: 'metersphere-maven', targetLocation: 'settings.xml')]) {
-                    sh "mvn clean install -Dgpg.skip --settings ./settings.xml"
+                    sh "mvn clean install -Dgpg.skip -Dmaven.javadoc.skip=true --settings ./settings.xml"
                 }
             }
         }
