@@ -182,6 +182,8 @@ public abstract class JSR223TestElement extends ScriptingTestElement
                         loadJarService.loadGroovyJar(groovyScriptEngine.getClassLoader());
                     }
                 }
+            } catch (ClassNotFoundException ignore) {
+                // 忽略这个异常
             } catch (Exception e) {
                 LoggerUtil.error("加载Groovy jar失败：", e);
             }
