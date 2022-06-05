@@ -9,6 +9,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Predicate;
 import io.metersphere.utils.DocumentUtils;
 import net.minidev.json.JSONArray;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.jmeter.samplers.SampleResult;
@@ -20,7 +21,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class JSONPathAssertion extends AbstractTestElement implements Serializable, Assertion, ThreadListener {
     private static final Logger log = LoggerFactory.getLogger(JSONPathAssertion.class);
@@ -154,11 +159,22 @@ public class JSONPathAssertion extends AbstractTestElement implements Serializab
         } else {
             Object[] var2 = value.toArray();
             int var3 = var2.length;
-
+            List<Boolean> result = new ArrayList<>();
             for (int var4 = 0; var4 < var3; ++var4) {
                 Object subj = var2[var4];
-                if (subj == null && this.isExpectNull() || this.isEquals(subj)) {
+                if (!StringUtils.equals(getOption() , "NOT_CONTAINS")) {
+                    if (subj == null && this.isExpectNull() || this.isEquals(subj)) {
+                        return true;
+                    }
+                } else {
+                    result.add(this.isEquals(subj));
+                }
+            }
+            if (CollectionUtils.isNotEmpty(result) && StringUtils.equals(getOption() , "NOT_CONTAINS")) {
+                if (result.stream().filter( item -> item == true).collect(Collectors.toList()).size() == result.size()) {
                     return true;
+                } else {
+                    return false;
                 }
             }
 
