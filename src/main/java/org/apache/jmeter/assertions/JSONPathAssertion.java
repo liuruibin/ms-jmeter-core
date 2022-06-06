@@ -184,7 +184,9 @@ public class JSONPathAssertion extends AbstractTestElement implements Serializab
 
     private boolean isGt(String v1, String v2) {
         try {
-            return v1.compareTo(v2) > 0;
+            BigDecimal value1 = new BigDecimal(v1);
+            BigDecimal value2 = new BigDecimal(v2);
+            return value1.compareTo(value2) > 0;
         } catch (Exception e) {
             return false;
         }
@@ -192,7 +194,9 @@ public class JSONPathAssertion extends AbstractTestElement implements Serializab
 
     private boolean isLt(String v1, String v2) {
         try {
-            return v1.compareTo(v2) < 0;
+            BigDecimal value1 = new BigDecimal(v1);
+            BigDecimal value2 = new BigDecimal(v2);
+            return value1.compareTo(value2) < 0;
         } catch (Exception e) {
             return false;
         }
