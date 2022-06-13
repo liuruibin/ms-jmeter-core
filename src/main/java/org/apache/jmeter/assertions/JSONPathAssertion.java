@@ -154,32 +154,28 @@ public class JSONPathAssertion extends AbstractTestElement implements Serializab
     }
 
     private boolean arrayMatched(JSONArray value) {
-        if (value.isEmpty() && "[]".equals(this.getExpectedValue())) {
-            return true;
-        } else {
-            Object[] var2 = value.toArray();
-            int var3 = var2.length;
-            List<Boolean> result = new ArrayList<>();
-            for (int var4 = 0; var4 < var3; ++var4) {
-                Object subj = var2[var4];
-                if (!StringUtils.equals(getOption() , "NOT_CONTAINS")) {
-                    if (subj == null && this.isExpectNull() || this.isEquals(subj)) {
-                        return true;
-                    }
-                } else {
-                    result.add(this.isEquals(subj));
-                }
-            }
-            if (CollectionUtils.isNotEmpty(result) && StringUtils.equals(getOption() , "NOT_CONTAINS")) {
-                if (result.stream().filter( item -> item == true).collect(Collectors.toList()).size() == result.size()) {
+        Object[] var2 = value.toArray();
+        int var3 = var2.length;
+        List<Boolean> result = new ArrayList<>();
+        for (int var4 = 0; var4 < var3; ++var4) {
+            Object subj = var2[var4];
+            if (!StringUtils.equals(getOption(), "NOT_CONTAINS")) {
+                if (subj == null && this.isExpectNull() || this.isEquals(subj)) {
                     return true;
-                } else {
-                    return false;
                 }
+            } else {
+                result.add(this.isEquals(subj));
             }
-
-            return this.isEquals(value);
         }
+        if (CollectionUtils.isNotEmpty(result) && StringUtils.equals(getOption(), "NOT_CONTAINS")) {
+            if (result.stream().filter(item -> item == true).collect(Collectors.toList()).size() == result.size()) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        return this.isEquals(value);
     }
 
     private boolean isGt(String v1, String v2) {
