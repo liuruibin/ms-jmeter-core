@@ -55,7 +55,7 @@
         <dependency>
             <groupId>io.metersphere</groupId>
             <artifactId>jmeter-plugins-webdriver</artifactId>
-            <version>3.4</version>
+            <version>3.4.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.jmeter</groupId>
