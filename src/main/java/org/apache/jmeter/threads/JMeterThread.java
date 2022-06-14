@@ -46,6 +46,7 @@ import org.apache.jorphan.util.JMeterError;
 import org.apache.jorphan.util.JMeterStopTestException;
 import org.apache.jorphan.util.JMeterStopTestNowException;
 import org.apache.jorphan.util.JMeterStopThreadException;
+import org.apiguardian.api.API;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -166,8 +167,20 @@ public class JMeterThread implements Runnable, Interruptible {
         this.isSameUserOnNextIteration = isSameUserOnNextIteration;
     }
 
+    @Deprecated
+    @API(status = API.Status.DEPRECATED, since = "5.5")
     public void setInitialContext(JMeterContext context) {
-        threadVars.putAll(context.getVariables());
+        putVariables(context.getVariables());
+    }
+
+    /**
+     * Updates the variables with all entries found in the variables in {@code vars}
+     *
+     * @param variables {@link JMeterVariables} with the entries to be updated
+     */
+    @API(status = API.Status.STABLE, since = "5.5")
+    public void putVariables(JMeterVariables variables) {
+        threadVars.putAll(variables);
     }
 
     /**
@@ -604,6 +617,7 @@ public class JMeterThread implements Runnable, Interruptible {
                 // This call is done by checkAssertions() , as we don't call it
                 // for isIgnore, we explictely call it here
                 setLastSampleOk(threadContext.getVariables(), result.isSuccessful());
+                compiler.done(pack);
             }
             // Check if thread or test should be stopped
             if (result.isStopThread() || (!result.isSuccessful() && onErrorStopThread)) {
@@ -626,11 +640,11 @@ public class JMeterThread implements Runnable, Interruptible {
     /**
      * Call sample on Sampler handling:
      * <ul>
-     * <li>setting up ThreadContext</li>
-     * <li>initializing sampler if needed</li>
-     * <li>positioning currentSamplerForInterruption for potential interruption</li>
-     * <li>Playing SampleMonitor before and after sampling</li>
-     * <li>resetting currentSamplerForInterruption</li>
+     *  <li>setting up ThreadContext</li>
+     *  <li>initializing sampler if needed</li>
+     *  <li>positioning currentSamplerForInterruption for potential interruption</li>
+     *  <li>Playing SampleMonitor before and after sampling</li>
+     *  <li>resetting currentSamplerForInterruption</li>
      * </ul>
      *
      * @param threadContext {@link JMeterContext}

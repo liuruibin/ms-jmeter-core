@@ -2,21 +2,22 @@
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
+ * The ASF licenses this file to you under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.apache.jmeter;
+
+// N.B. this must only use standard Java packages
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -24,14 +25,15 @@ import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Main class for JMeter - sets up initial classpath and the loader.
- *
  */
 public final class NewDriver {
 
@@ -46,10 +48,14 @@ public final class NewDriver {
     private static final String JMETER_LOGFILE_SYSTEM_PROPERTY = "jmeter.logfile";// $NON-NLS-1$
 
     private static final String HEADLESS_MODE_PROPERTY = "java.awt.headless";// $NON-NLS-1$
-    /** The class loader to use for loading JMeter classes. */
+    /**
+     * The class loader to use for loading JMeter classes.
+     */
     private static final DynamicClassLoader loader;
 
-    /** The directory JMeter is installed in. */
+    /**
+     * The directory JMeter is installed in.
+     */
     private static final String JMETER_INSTALLATION_DIRECTORY;
 
     private static final List<Exception> EXCEPTIONS_IN_INIT = new ArrayList<>();
@@ -68,20 +74,22 @@ public final class NewDriver {
     }
 
     static {
-        final List<URL> jars = new LinkedList<>();
+        final List<URL> jars = new ArrayList<>();
         final String initiaClasspath = System.getProperty(JAVA_CLASS_PATH);
 
         // Find JMeter home dir from the initial classpath
         String tmpDir;
 
         //只从 jmeter.home 加载
-        tmpDir = System.getProperty("jmeter.home","");// Allow override $NON-NLS-1$ $NON-NLS-2$
+        tmpDir = System.getProperty("jmeter.home", "");// Allow override $NON-NLS-1$ $NON-NLS-2$
         if (tmpDir.length() == 0) {
             File userDir = new File(System.getProperty("user.dir"));// $NON-NLS-1$
             tmpDir = userDir.getAbsoluteFile().getParent();
         }
-
-        JMETER_INSTALLATION_DIRECTORY=tmpDir;
+        if (tmpDir == null) {
+            tmpDir = System.getenv("JMETER_HOME");
+        }
+        JMETER_INSTALLATION_DIRECTORY = tmpDir;
 
         /*
          * Does the system support UNC paths? If so, may need to fix them up
@@ -91,7 +99,7 @@ public final class NewDriver {
 
         // Add standard jar locations to initial classpath
         StringBuilder classpath = new StringBuilder();
-        File[] libDirs = new File[] { new File(JMETER_INSTALLATION_DIRECTORY + File.separator + "lib"),// $NON-NLS-1$ $NON-NLS-2$
+        File[] libDirs = new File[]{new File(JMETER_INSTALLATION_DIRECTORY + File.separator + "lib"),// $NON-NLS-1$ $NON-NLS-2$
                 new File(JMETER_INSTALLATION_DIRECTORY + File.separator + "lib" + File.separator + "ext"),// $NON-NLS-1$ $NON-NLS-2$
                 new File(JMETER_INSTALLATION_DIRECTORY + File.separator + "lib" + File.separator + "junit")};// $NON-NLS-1$ $NON-NLS-2$
         for (File libDir : libDirs) {
@@ -118,15 +126,20 @@ public final class NewDriver {
                     classpath.append(CLASSPATH_SEPARATOR);
                     classpath.append(s);
                 } catch (MalformedURLException e) { // NOSONAR
-                    EXCEPTIONS_IN_INIT.add(new Exception("Error adding jar:"+libJar.getAbsolutePath(), e));
+                    EXCEPTIONS_IN_INIT.add(new Exception("Error adding jar:" + libJar.getAbsolutePath(), e));
                 }
             }
         }
 
         // ClassFinder needs the classpath
         System.setProperty(JAVA_CLASS_PATH, initiaClasspath + classpath.toString());
-        loader = AccessController.doPrivileged(
-                (PrivilegedAction<DynamicClassLoader>) () ->
+        loader = createClassLoader(jars);
+    }
+
+    @SuppressWarnings("removal")
+    private static DynamicClassLoader createClassLoader(List<URL> jars) {
+        return java.security.AccessController.doPrivileged(
+                (java.security.PrivilegedAction<DynamicClassLoader>) () ->
                         new DynamicClassLoader(jars.toArray(new URL[jars.size()]), Thread.currentThread().getContextClassLoader())
         );
     }
@@ -175,8 +188,7 @@ public final class NewDriver {
      * Add a URL to the loader classpath only; does not update the system
      * classpath.
      *
-     * @param url
-     *            The {@link URL} to add to the classpath
+     * @param url The {@link URL} to add to the classpath
      */
     public static void addURL(URL url) {
         loader.addURL(url);
@@ -185,11 +197,9 @@ public final class NewDriver {
     /**
      * Add a directory or jar to the loader and system classpaths.
      *
-     * @param path
-     *            to add to the loader and system classpath
-     * @throws MalformedURLException
-     *             if <code>path</code> can not be transformed to a valid
-     *             {@link URL}
+     * @param path to add to the loader and system classpath
+     * @throws MalformedURLException if <code>path</code> can not be transformed to a valid
+     *                               {@link URL}
      */
     public static void addPath(String path) throws MalformedURLException {
         File file = new File(path);
@@ -209,7 +219,7 @@ public final class NewDriver {
         }
 
         // ClassFinder needs this
-        System.setProperty(JAVA_CLASS_PATH,sb.toString());
+        System.setProperty(JAVA_CLASS_PATH, sb.toString());
     }
 
     /**
@@ -225,12 +235,11 @@ public final class NewDriver {
     /**
      * The main program which actually runs JMeter.
      *
-     * @param args
-     *            the command line arguments
+     * @param args the command line arguments
      */
     public static void main(String[] args) {
-        if(!EXCEPTIONS_IN_INIT.isEmpty()) {
-            System.err.println("Configuration error during init, see exceptions:"+exceptionsToString(EXCEPTIONS_IN_INIT)); // NOSONAR Intentional System.err use
+        if (!EXCEPTIONS_IN_INIT.isEmpty()) {
+            System.err.println("Configuration error during init, see exceptions:" + exceptionsToString(EXCEPTIONS_IN_INIT)); // NOSONAR Intentional System.err use
         } else {
             Thread.currentThread().setContextClassLoader(loader);
 
@@ -239,16 +248,16 @@ public final class NewDriver {
 
             try {
                 // Only set property if it has not been set explicitely
-                if(System.getProperty(HEADLESS_MODE_PROPERTY) == null && shouldBeHeadless(args)) {
+                if (System.getProperty(HEADLESS_MODE_PROPERTY) == null && shouldBeHeadless(args)) {
                     System.setProperty(HEADLESS_MODE_PROPERTY, "true");
                 }
                 Class<?> initialClass = loader.loadClass("org.apache.jmeter.JMeter");// $NON-NLS-1$
                 Object instance = initialClass.getDeclaredConstructor().newInstance();
-                Method startup = initialClass.getMethod("start", new Class[] { new String[0].getClass() });// $NON-NLS-1$
-                startup.invoke(instance, new Object[] { args });
-            } catch(Throwable e){ // NOSONAR We want to log home directory in case of exception
+                Method startup = initialClass.getMethod("start", new Class[]{new String[0].getClass()});// $NON-NLS-1$
+                startup.invoke(instance, new Object[]{args});
+            } catch (Throwable e) { // NOSONAR We want to log home directory in case of exception
                 e.printStackTrace(); // NOSONAR No logger at this step
-                System.err.println("JMeter home directory was detected as: "+JMETER_INSTALLATION_DIRECTORY); // NOSONAR Intentional System.err use
+                System.err.println("JMeter home directory was detected as: " + JMETER_INSTALLATION_DIRECTORY); // NOSONAR Intentional System.err use
             }
         }
     }
@@ -301,12 +310,13 @@ public final class NewDriver {
 
     private static boolean shouldBeHeadless(String[] args) {
         for (String arg : args) {
-            if("-n".equals(arg) || "-s".equals(arg) || "-g".equals(arg)) {
+            if ("-n".equals(arg) || "-s".equals(arg) || "-g".equals(arg)) {
                 return true;
             }
         }
         return false;
     }
+
     /*
      * Find command line argument option value by the id and name.
      */
@@ -339,13 +349,13 @@ public final class NewDriver {
         try {
             StringBuilder builder = new StringBuilder();
 
-            final Date date = new Date();
+            final Instant date = Instant.now();
             int fromIndex = 0;
             int begin = fileName.indexOf('\'', fromIndex);// $NON-NLS-1$
             int end;
 
             String format;
-            SimpleDateFormat dateFormat;
+            DateTimeFormatter dateFormat;
 
             while (begin != -1) {
                 builder.append(fileName.substring(fromIndex, begin));
@@ -357,7 +367,7 @@ public final class NewDriver {
                 }
 
                 format = fileName.substring(begin + 1, end);
-                dateFormat = new SimpleDateFormat(format);
+                dateFormat = DateTimeFormatter.ofPattern(format).withZone(ZoneId.systemDefault());
                 builder.append(dateFormat.format(date));
 
                 fromIndex = end + 1;
@@ -370,7 +380,7 @@ public final class NewDriver {
 
             return builder.toString();
         } catch (Exception ex) {
-            System.err.println("Error replacing date format in file name:"+fileName+", error:"+ex.getMessage()); // NOSONAR
+            System.err.println("Error replacing date format in file name:" + fileName + ", error:" + ex.getMessage()); // NOSONAR
         }
 
         return fileName;
