@@ -32,6 +32,7 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.Locale;
 
+
 /**
  * The SSLManager handles the KeyStore information for JMeter. Basically, it
  * handles all the logic for loading and initializing all the JSSE parameters
@@ -167,41 +168,49 @@ public abstract class SSLManager {
                 throw new IllegalArgumentException("Could not create keystore: "+e.getMessage(), e);
             }
 
-           try {
+            try {
 
-              // The string 'NONE' is used for the keystore location when using PKCS11
-              // https://docs.oracle.com/javase/8/docs/technotes/guides/security/p11guide.html#JSSE
-              if ("NONE".equalsIgnoreCase(fileName)) {
-                 retryLoadKeys(null, false);
-                 log.info("Total of {} aliases loaded OK from PKCS11", keyStore.getAliasCount());
-              } else {
-                 File initStore = new File(fileName);
-                 if (fileName.length() > 0 && initStore.exists()) {
-                     retryLoadKeys(initStore, true);
-                     if (log.isInfoEnabled()) {
-                         log.info("Total of {} aliases loaded OK from keystore {}",
-                                 keyStore.getAliasCount(), fileName);
-                     }
-                 } else {
-                    log.warn("Keystore file not found, loading empty keystore");
-                    this.defaultpw = ""; // Ensure not null
-                    this.keyStore.load(is, password);
-                 }
-              }
-           } catch (Exception e) {
-              log.error("Problem loading keystore: {}", e.getMessage(), e);
-           }
+                // The string 'NONE' is used for the keystore location when using PKCS11
+                // https://docs.oracle.com/javase/8/docs/technotes/guides/security/p11guide.html#JSSE
+                if ("NONE".equalsIgnoreCase(fileName)) {
+                    retryLoadKeys(null, false);
+                    log.info("Total of {} aliases loaded OK from PKCS11", keyStore.getAliasCount());
+                } else {
+                    File initStore = new File(fileName);
+                    if (fileName.length() > 0 && initStore.exists()) {
+                        retryLoadKeys(initStore, true);
+                        if (log.isInfoEnabled()) {
+                            log.info("Total of {} aliases loaded OK from keystore {}",
+                                    keyStore.getAliasCount(), fileName);
+                        }
+                    } else {
+                        log.warn("Keystore file not found, loading empty keystore");
+                        this.defaultpw = ""; // Ensure not null
+                        this.keyStore.load(is, password);
+                    }
+                }
+            } catch (IOException e) {
+                log.error("Can't load keystore '{}'. Wrong password?", fileName, e);
+            } catch (UnrecoverableKeyException e) {
+                log.error("Can't recover keys from keystore '{}'", fileName, e);
+            } catch (NoSuchAlgorithmException e) {
+                log.error("Problem finding the correct algorithm while loading keys from keystore '{}'", fileName, e);
+            } catch (CertificateException e) {
+                log.error("Problem with one of the certificates/keys in keystore '{}'", fileName, e);
+            } catch (KeyStoreException e) {
+                log.error("Problem loading keystore: {}", e.getMessage(), e);
+            }
 
-           if (log.isDebugEnabled()) {
-              log.debug("JmeterKeyStore type: {}", this.keyStore.getClass());
-           }
+            if (log.isDebugEnabled()) {
+                log.debug("JmeterKeyStore type: {}", this.keyStore.getClass());
+            }
         }
 
         return this.keyStore;
     }
 
     private void retryLoadKeys(File initStore, boolean allowEmptyPassword) throws NoSuchAlgorithmException,
-            CertificateException, IOException, KeyStoreException, UnrecoverableKeyException {
+            CertificateException, KeyStoreException, UnrecoverableKeyException {
         for (int i = 0; i < 3; i++) {
             String password = getPassword();
             if (!allowEmptyPassword) {
@@ -217,7 +226,7 @@ public abstract class SSLManager {
                 }
                 return;
             } catch (IOException e) {
-                log.debug("Could not load keystore. Wrong password for keystore?", e);
+                log.warn("Could not load keystore '{}'. Wrong password for keystore?", initStore, e);
             }
             this.defaultpw = null;
         }

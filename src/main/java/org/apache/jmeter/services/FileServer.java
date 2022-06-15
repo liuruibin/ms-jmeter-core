@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -67,7 +66,7 @@ public class FileServer {
 
     private File base;
 
-    private final Map<String, FileEntry> files = new ConcurrentHashMap<>();
+    private final Map<String, FileEntry> files = new HashMap<>();
 
     private static final FileServer server = new FileServer();
 
@@ -122,7 +121,7 @@ public class FileServer {
      * from its parent.
      *
      * @param scriptPath the path of the script file; must be not be {@code null}
-     * @throws IllegalStateException    if files are still open
+     * @throws IllegalStateException if files are still open
      * @throws IllegalArgumentException if scriptPath parameter is null
      */
     public synchronized void setBaseForScript(File scriptPath) {
@@ -138,7 +137,7 @@ public class FileServer {
      * Sets the current base directory for relative file names.
      *
      * @param jmxBase the path of the script file base directory, cannot be null
-     * @throws IllegalStateException    if files are still open
+     * @throws IllegalStateException if files are still open
      * @throws IllegalArgumentException if {@code basepath} is null
      */
     public synchronized void setBase(File jmxBase) {
@@ -208,14 +207,14 @@ public class FileServer {
      * @param filename - relative (to base) or absolute file name (must not be null)
      */
     public void reserveFile(String filename) {
-        reserveFile(filename, null);
+        reserveFile(filename,null);
     }
 
     /**
      * Creates an association between a filename and a File inputOutputObject,
      * and stores it for later use - unless it is already stored.
      *
-     * @param filename    - relative (to base) or absolute file name (must not be null)
+     * @param filename - relative (to base) or absolute file name (must not be null)
      * @param charsetName - the character set encoding to use for the file (may be null)
      */
     public void reserveFile(String filename, String charsetName) {
@@ -226,9 +225,9 @@ public class FileServer {
      * Creates an association between a filename and a File inputOutputObject,
      * and stores it for later use - unless it is already stored.
      *
-     * @param filename    - relative (to base) or absolute file name (must not be null)
+     * @param filename - relative (to base) or absolute file name (must not be null)
      * @param charsetName - the character set encoding to use for the file (may be null)
-     * @param alias       - the name to be used to access the object (must not be null)
+     * @param alias - the name to be used to access the object (must not be null)
      */
     public void reserveFile(String filename, String charsetName, String alias) {
         reserveFile(filename, charsetName, alias, false);
@@ -238,10 +237,10 @@ public class FileServer {
      * Creates an association between a filename and a File inputOutputObject,
      * and stores it for later use - unless it is already stored.
      *
-     * @param filename    - relative (to base) or absolute file name (must not be null or empty)
+     * @param filename - relative (to base) or absolute file name (must not be null or empty)
      * @param charsetName - the character set encoding to use for the file (may be null)
-     * @param alias       - the name to be used to access the object (must not be null)
-     * @param hasHeader   true if the file has a header line describing the contents
+     * @param alias - the name to be used to access the object (must not be null)
+     * @param hasHeader true if the file has a header line describing the contents
      * @return the header line; may be null
      * @throws IllegalArgumentException if header could not be read or filename is null or empty
      */
@@ -279,12 +278,10 @@ public class FileServer {
         return fileEntry.headerLine;
     }
 
-
     /**
      * Resolves file name into {@link File} instance.
      * When filename is not absolute and not found from current working dir,
      * it tries to find it under current base directory
-     *
      * @param filename original file name
      * @return {@link File} instance
      */
@@ -312,7 +309,7 @@ public class FileServer {
      * Get the next line of the named file, first line is name to false
      *
      * @param filename the filename or alias that was used to reserve the file
-     * @param recycle  - should file be restarted at EOF?
+     * @param recycle - should file be restarted at EOF?
      * @return String containing the next line in the file (null if EOF reached and not recycle)
      * @throws IOException when reading of the file fails, or the file was not reserved properly
      */
@@ -323,8 +320,8 @@ public class FileServer {
     /**
      * Get the next line of the named file
      *
-     * @param filename        the filename or alias that was used to reserve the file
-     * @param recycle         - should file be restarted at EOF?
+     * @param filename the filename or alias that was used to reserve the file
+     * @param recycle - should file be restarted at EOF?
      * @param ignoreFirstLine - Ignore first line
      * @return String containing the next line in the file (null if EOF reached and not recycle)
      * @throws IOException when reading of the file fails, or the file was not reserved properly
@@ -353,14 +350,15 @@ public class FileServer {
             log.debug("Read:{}", line);
             return line;
         }
-        throw new IOException("File never reserved: " + filename);
+        throw new IOException("File never reserved: "+filename);
     }
 
     /**
-     * @param alias           the file name or alias
-     * @param recycle         whether the file should be re-started on EOF
+     *
+     * @param alias the file name or alias
+     * @param recycle whether the file should be re-started on EOF
      * @param ignoreFirstLine whether the file contains a file header which will be ignored
-     * @param delim           the delimiter to use for parsing
+     * @param delim the delimiter to use for parsing
      * @return the parsed line, will be empty if the file is at EOF
      * @throws IOException when reading of the aliased file fails, or the file was not reserved properly
      */
@@ -411,7 +409,7 @@ public class FileServer {
             }
             return reader;
         } else {
-            throw new IOException("File never reserved: " + alias);
+            throw new IOException("File never reserved: "+alias);
         }
     }
 
@@ -446,7 +444,7 @@ public class FileServer {
             log.debug("Write:{}", value);
             writer.write(value);
         } else {
-            throw new IOException("File never reserved: " + filename);
+            throw new IOException("File never reserved: "+filename);
         }
     }
 
@@ -466,7 +464,7 @@ public class FileServer {
 
     public synchronized void closeFiles() throws IOException {
         for (Map.Entry<String, FileEntry> me : files.entrySet()) {
-            closeFile(me.getKey(), me.getValue());
+            closeFile(me.getKey(), me.getValue() );
         }
         files.clear();
     }
@@ -584,8 +582,9 @@ public class FileServer {
      * "jmeter.save.saveservice.base_prefix" - default "~/" - then the name is
      * assumed to be relative to the basename.
      *
-     * @param relativeName filename that should be checked for
-     *                     <code>jmeter.save.saveservice.base_prefix</code>
+     * @param relativeName
+     *            filename that should be checked for
+     *            <code>jmeter.save.saveservice.base_prefix</code>
      * @return the updated filename
      */
     public static String resolveBaseRelativeName(String relativeName) {

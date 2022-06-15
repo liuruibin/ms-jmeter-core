@@ -46,12 +46,12 @@ import java.util.ResourceBundle;
 
 /**
  * Read lines from a file and split int variables.
- * <p>
+ *
  * The iterationStart() method is used to set up each set of values.
- * <p>
+ *
  * By default, the same file is shared between all threads
  * (and other thread groups, if they use the same file name).
- * <p>
+ *
  * The shareMode can be set to:
  * <ul>
  * <li>All threads - default, as described above</li>
@@ -59,7 +59,7 @@ import java.util.ResourceBundle;
  * <li>Current thread</li>
  * <li>Identifier - all threads sharing the same identifier</li>
  * </ul>
- * <p>
+ *
  * The class uses the FileServer alias mechanism to provide the different share modes.
  * For all threads, the file alias is set to the file name.
  * Otherwise, a suffix is appended to the filename to make it unique within the required context.
@@ -67,6 +67,7 @@ import java.util.ResourceBundle;
  * for individual threads, the thread hashcode is used as the suffix.
  * Or the user can provide their own suffix, in which case the file is shared between all
  * threads with the same suffix.
+ *
  */
 @GUIMenuSortOrder(1)
 @TestElementMetadata(labelResource = "displayName")
@@ -244,7 +245,6 @@ public class CSVDataSet extends ConfigTestElement
 
     /**
      * trim content of array varNames
-     *
      * @param varsNames
      */
     private void trimVarNames(String[] varsNames) {
@@ -275,7 +275,8 @@ public class CSVDataSet extends ConfigTestElement
     }
 
     /**
-     * @param fileEncoding The fileEncoding to set.
+     * @param fileEncoding
+     *            The fileEncoding to set.
      */
     public void setFileEncoding(String fileEncoding) {
         this.fileEncoding = fileEncoding;
@@ -289,7 +290,8 @@ public class CSVDataSet extends ConfigTestElement
     }
 
     /**
-     * @param variableNames The variableNames to set.
+     * @param variableNames
+     *            The variableNames to set.
      */
     public void setVariableNames(String variableNames) {
         this.variableNames = variableNames;

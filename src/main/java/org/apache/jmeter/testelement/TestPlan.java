@@ -131,7 +131,6 @@ public class TestPlan extends AbstractTestElement implements Serializable, TestS
 
     /**
      * Set JMeter in functional mode
-     *
      * @param funcMode boolean functional mode
      */
     private static void setGlobalFunctionalMode(boolean funcMode) {
@@ -172,7 +171,7 @@ public class TestPlan extends AbstractTestElement implements Serializable, TestS
 
     public void setTestPlanClasspathArray(String[] text) {
         StringBuilder cat = new StringBuilder();
-        for (int idx = 0; idx < text.length; idx++) {
+        for (int idx=0; idx < text.length; idx++) {
             if (idx > 0) {
                 cat.append(CLASSPATH_SEPARATOR);
             }
@@ -187,7 +186,6 @@ public class TestPlan extends AbstractTestElement implements Serializable, TestS
 
     /**
      * Returns the classpath
-     *
      * @return classpath
      */
     public String getTestPlanClasspath() {
@@ -218,7 +216,8 @@ public class TestPlan extends AbstractTestElement implements Serializable, TestS
     /**
      * Adds a feature to the AbstractThreadGroup attribute of the TestPlan object.
      *
-     * @param group the feature to be added to the AbstractThreadGroup attribute
+     * @param group
+     *            the feature to be added to the AbstractThreadGroup attribute
      */
     public void addThreadGroup(AbstractThreadGroup group) {
         threadGroups.add(group);

@@ -16,6 +16,7 @@
  */
 
 package org.apache.jmeter.protocol.http.sampler;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.engine.event.LoopIterationEvent;
 import org.apache.jmeter.samplers.Interruptible;

@@ -2,18 +2,17 @@
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
+ * The ASF licenses this file to you under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.apache.jmeter.util;
@@ -21,7 +20,7 @@ package org.apache.jmeter.util;
 import io.metersphere.jmeter.LoadJarService;
 import io.metersphere.utils.LoggerUtil;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.collections.map.LRUMap;
+import org.apache.commons.collections4.map.LRUMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.MethodUtils;
 import org.apache.jmeter.NewDriver;
@@ -37,11 +36,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.script.*;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
-
 
 /**
  * Base class for JSR223 Test elements
@@ -51,7 +53,7 @@ import java.util.Properties;
  */
 public abstract class JSR223TestElement extends ScriptingTestElement
         implements Serializable, TestStateListener {
-    private static final long serialVersionUID = 232L;
+    private static final long serialVersionUID = 233L;
 
     private LoadJarService loadJarService;
 
@@ -59,19 +61,16 @@ public abstract class JSR223TestElement extends ScriptingTestElement
     /**
      * Cache of compiled scripts
      */
-    @SuppressWarnings("unchecked") // LRUMap does not support generics (yet)
     private static final Map<String, CompiledScript> compiledScriptsCache =
             Collections.synchronizedMap(
-                    new LRUMap(JMeterUtils.getPropDefault("jsr223.compiled_scripts_cache_size", 100)));
+                    new LRUMap<>(JMeterUtils.getPropDefault("jsr223.compiled_scripts_cache_size", 100)));
 
     /**
      * If not empty then script in ScriptText will be compiled and cached
      */
     private String cacheKey = "";
 
-    /**
-     * md5 of the script, used as an unique key for the cache
-     */
+    /** md5 of the script, used as an unique key for the cache */
     private String scriptMd5 = null;
 
     /**
@@ -81,7 +80,6 @@ public abstract class JSR223TestElement extends ScriptingTestElement
         private LazyHolder() {
             super();
         }
-
         public static final ScriptEngineManager INSTANCE = new ScriptEngineManager();
     }
 
@@ -92,7 +90,7 @@ public abstract class JSR223TestElement extends ScriptingTestElement
         return LazyHolder.INSTANCE;
     }
 
-    public JSR223TestElement() {
+    protected JSR223TestElement() {
         super();
     }
 
@@ -104,7 +102,7 @@ public abstract class JSR223TestElement extends ScriptingTestElement
         String lang = getScriptLanguageWithDefault();
         ScriptEngine scriptEngine = getInstance().getEngineByName(lang);
         if (scriptEngine == null) {
-            throw new ScriptException("Cannot find engine named: '" + lang + "', ensure you set language field in JSR223 Test Element: " + getName());
+            throw new ScriptException("Cannot find engine named: '" + lang + "', ensure you set language field in JSR223 Test Element: "+getName());
         }
 
         return scriptEngine;
@@ -123,7 +121,6 @@ public abstract class JSR223TestElement extends ScriptingTestElement
 
     /**
      * Populate variables to be passed to scripts
-     *
      * @param bindings Bindings
      */
     protected void populateBindings(Bindings bindings) {
@@ -131,7 +128,7 @@ public abstract class JSR223TestElement extends ScriptingTestElement
         final String fileName = getFilename();
         final String scriptParameters = getParameters();
         // Use actual class name for log
-        final Logger elementLogger = LoggerFactory.getLogger(getClass().getName() + "." + getName());
+        final Logger elementLogger = LoggerFactory.getLogger(getClass().getName() + "."+getName());
         bindings.put("log", elementLogger); // $NON-NLS-1$ (this name is fixed)
         bindings.put("Label", label); // $NON-NLS-1$ (this name is fixed)
         bindings.put("FileName", fileName); // $NON-NLS-1$ (this name is fixed)
@@ -160,11 +157,10 @@ public abstract class JSR223TestElement extends ScriptingTestElement
      * This method will run inline script or file script with special behaviour for file script:
      * - If ScriptEngine implements Compilable script will be compiled and cached
      * - If not if will be run
-     *
      * @param scriptEngine ScriptEngine
-     * @param pBindings    {@link Bindings} might be null
+     * @param pBindings {@link Bindings} might be null
      * @return Object returned by script
-     * @throws IOException     when reading the script fails
+     * @throws IOException when reading the script fails
      * @throws ScriptException when compiling or evaluation of the script fails
      */
     protected Object processFileOrScript(ScriptEngine scriptEngine, final Bindings pBindings)
@@ -175,7 +171,7 @@ public abstract class JSR223TestElement extends ScriptingTestElement
                 GroovyScriptEngineImpl groovyScriptEngine = (GroovyScriptEngineImpl) scriptEngine;
                 if (loadJarService == null) {
                     loadJarService = Class.forName("io.metersphere.api.jmeter.MsGroovyLoadJarService", true,
-                            Thread.currentThread().getContextClassLoader())
+                                    Thread.currentThread().getContextClassLoader())
                             .asSubclass(LoadJarService.class)
                             .getDeclaredConstructor().newInstance();
                     if (loadJarService != null) {
@@ -198,7 +194,7 @@ public abstract class JSR223TestElement extends ScriptingTestElement
         // Hack: bsh-2.0b5.jar BshScriptEngine implements Compilable but throws
         // "java.lang.Error: unimplemented"
         boolean supportsCompilable = scriptEngine instanceof Compilable
-                && !("bsh.engine.BshScriptEngine".equals(scriptEngine.getClass().getName())); // NOSONAR // $NON-NLS-1$
+                && !"bsh.engine.BshScriptEngine".equals(scriptEngine.getClass().getName()); // NOSONAR // $NON-NLS-1$
 
         ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         // 将当前类加载器设置为 loader ，解决由系统类加载器加载的 JMeter 无法动态加载 jar 包问题
@@ -219,9 +215,7 @@ public abstract class JSR223TestElement extends ScriptingTestElement
                             synchronized (compiledScriptsCache) {
                                 compiledScript = compiledScriptsCache.get(newCacheKey);
                                 if (compiledScript == null) {
-                                    // TODO Charset ?
-                                    try (BufferedReader fileReader = new BufferedReader(new FileReader(scriptFile),
-                                            (int) scriptFile.length())) {
+                                    try (BufferedReader fileReader = Files.newBufferedReader(scriptFile.toPath())) {
                                         compiledScript = ((Compilable) scriptEngine).compile(fileReader);
                                         compiledScriptsCache.put(newCacheKey, compiledScript);
                                     }
@@ -230,9 +224,7 @@ public abstract class JSR223TestElement extends ScriptingTestElement
                         }
                         return compiledScript.eval(bindings);
                     } else {
-                        // TODO Charset ?
-                        try (BufferedReader fileReader = new BufferedReader(new FileReader(scriptFile),
-                                (int) scriptFile.length())) {
+                        try (BufferedReader fileReader = Files.newBufferedReader(scriptFile.toPath())) {
                             return scriptEngine.eval(fileReader, bindings);
                         }
                     }
@@ -249,12 +241,8 @@ public abstract class JSR223TestElement extends ScriptingTestElement
                         synchronized (compiledScriptsCache) {
                             compiledScript = compiledScriptsCache.get(this.scriptMd5);
                             if (compiledScript == null) {
-                                try {
-                                    compiledScript = ((Compilable) scriptEngine).compile(getScript());
-                                    compiledScriptsCache.put(this.scriptMd5, compiledScript);
-                                } catch (IllegalArgumentException e) {
-                                    return new Object();
-                                }
+                                compiledScript = ((Compilable) scriptEngine).compile(getScript());
+                                compiledScriptsCache.put(this.scriptMd5, compiledScript);
                             }
                         }
                     }
@@ -281,7 +269,7 @@ public abstract class JSR223TestElement extends ScriptingTestElement
 
     /**
      * @return boolean true if element is not compilable or if compilation succeeds
-     * @throws IOException     if script is missing
+     * @throws IOException if script is missing
      * @throws ScriptException if compilation fails
      */
     public boolean compile()
@@ -289,7 +277,7 @@ public abstract class JSR223TestElement extends ScriptingTestElement
         String lang = getScriptLanguageWithDefault();
         ScriptEngine scriptEngine = getInstance().getEngineByName(lang);
         boolean supportsCompilable = scriptEngine instanceof Compilable
-                && !("bsh.engine.BshScriptEngine".equals(scriptEngine.getClass().getName())); // NOSONAR // $NON-NLS-1$
+                && !"bsh.engine.BshScriptEngine".equals(scriptEngine.getClass().getName()); // NOSONAR // $NON-NLS-1$
         if (!supportsCompilable) {
             return true;
         }
@@ -303,8 +291,7 @@ public abstract class JSR223TestElement extends ScriptingTestElement
             }
         } else {
             File scriptFile = new File(getFilename());
-            try (BufferedReader fileReader = new BufferedReader(new FileReader(scriptFile),
-                    (int) scriptFile.length())) {
+            try (BufferedReader fileReader = Files.newBufferedReader(scriptFile.toPath())) {
                 try {
                     ((Compilable) scriptEngine).compile(fileReader);
                     return true;
