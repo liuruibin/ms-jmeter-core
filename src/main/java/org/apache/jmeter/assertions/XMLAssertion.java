@@ -21,7 +21,6 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Predicate;
 import io.metersphere.utils.DocumentUtils;
 import net.minidev.json.JSONArray;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.testelement.AbstractTestElement;
 import org.apache.jmeter.testelement.ThreadListener;
@@ -42,6 +41,7 @@ import java.text.DecimalFormat;
 
 /**
  * Checks if the result is a well-formed XML content using {@link XMLReader}
+ *
  */
 public class XMLAssertion extends AbstractTestElement implements Serializable, Assertion, ThreadListener {
     private static final Logger log = LoggerFactory.getLogger(XMLAssertion.class);
@@ -123,6 +123,7 @@ public class XMLAssertion extends AbstractTestElement implements Serializable, A
             result.setError(true);
             result.setFailureMessage("Cannot initialize XMLReader in element:" + getName() + ", check jmeter.log file");
         }
+
         return result;
     }
 
@@ -147,25 +148,22 @@ public class XMLAssertion extends AbstractTestElement implements Serializable, A
     }
 
     private boolean arrayMatched(JSONArray value) {
-        if (value.isEmpty() && "[]".equals(this.getExpectedValue())) {
+        if (value.isEmpty() && "[]".equals(getExpectedValue())) {
             return true;
-        } else {
-            Object[] var2 = value.toArray();
-            int var3 = var2.length;
-
-            for (int var4 = 0; var4 < var3; ++var4) {
-                Object subj = var2[var4];
-                if (subj == null || this.isEquals(subj)) {
-                    return true;
-                }
-            }
-
-            return this.isEquals(value);
         }
+
+        for (Object subj : value.toArray()) {
+            if (subj == null || isEquals(subj)) {
+                return true;
+            }
+        }
+
+        return isEquals(value);
     }
 
     @Override
     public void threadStarted() {
+        // nothing to do on thread start
     }
 
     @Override
