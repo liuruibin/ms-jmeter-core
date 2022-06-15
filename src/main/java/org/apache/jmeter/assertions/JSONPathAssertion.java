@@ -1,15 +1,27 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to you under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.jmeter.assertions;
 
 import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.Predicate;
 import io.metersphere.utils.DocumentUtils;
 import net.minidev.json.JSONArray;
-import org.apache.commons.collections.CollectionUtils;
+import net.minidev.json.JSONObject;
+import net.minidev.json.JSONValue;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.jmeter.samplers.SampleResult;
@@ -23,27 +35,34 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.Objects;
 
+/**
+ * This is main class for JSONPath Assertion which verifies assertion on
+ * previous sample result using JSON path expression
+ *
+ * @since 4.0
+ */
 public class JSONPathAssertion extends AbstractTestElement implements Serializable, Assertion, ThreadListener {
     private static final Logger log = LoggerFactory.getLogger(JSONPathAssertion.class);
     private static final long serialVersionUID = 2L;
     public static final String JSONPATH = "JSON_PATH";
-    public static final String EXPECTED_VALUE = "EXPECTED_VALUE";
-    public static final String JSON_VALIDATION = "JSONVALIDATION";
+    public static final String EXPECTEDVALUE = "EXPECTED_VALUE";
+    public static final String JSONVALIDATION = "JSONVALIDATION";
     public static final String EXPECT_NULL = "EXPECT_NULL";
     public static final String INVERT = "INVERT";
-    public static final String IS_REGEX = "ISREGEX";
-    private static ThreadLocal<DecimalFormat> decimalFormatter = ThreadLocal.withInitial(JSONPathAssertion::createDecimalFormat);
+    public static final String ISREGEX = "ISREGEX";
 
-    public JSONPathAssertion() {
-    }
+    private static final boolean USE_JAVA_REGEX = !JMeterUtils.getPropDefault(
+            "jmeter.regex.engine", "oro").equalsIgnoreCase("oro");
+
+    private static ThreadLocal<DecimalFormat> decimalFormatter =
+            ThreadLocal.withInitial(JSONPathAssertion::createDecimalFormat);
 
     private static DecimalFormat createDecimalFormat() {
         DecimalFormat decimalFormatter = new DecimalFormat("#.#");
-        decimalFormatter.setMaximumFractionDigits(340);
+        decimalFormatter.setMaximumFractionDigits(340); // java.text.DecimalFormat.DOUBLE_FRACTION_DIGITS == 340
         decimalFormatter.setMinimumFractionDigits(1);
         return decimalFormatter;
     }
@@ -57,126 +76,129 @@ public class JSONPathAssertion extends AbstractTestElement implements Serializab
     }
 
     public String getJsonPath() {
-        return this.getPropertyAsString("JSON_PATH");
+        return getPropertyAsString(JSONPATH);
     }
 
     public void setJsonPath(String jsonPath) {
-        this.setProperty("JSON_PATH", jsonPath);
+        setProperty(JSONPATH, jsonPath);
     }
 
     public String getExpectedValue() {
-        return this.getPropertyAsString("EXPECTED_VALUE");
+        return getPropertyAsString(EXPECTEDVALUE);
     }
 
     public void setExpectedValue(String expectedValue) {
-        this.setProperty("EXPECTED_VALUE", expectedValue);
+        setProperty(EXPECTEDVALUE, expectedValue);
     }
 
     public void setJsonValidationBool(boolean jsonValidation) {
-        this.setProperty(JSON_VALIDATION, jsonValidation);
+        setProperty(JSONVALIDATION, jsonValidation);
     }
 
     public void setExpectNull(boolean val) {
-        this.setProperty("EXPECT_NULL", val);
+        setProperty(EXPECT_NULL, val);
     }
 
     public boolean isExpectNull() {
-        return this.getPropertyAsBoolean("EXPECT_NULL");
+        return getPropertyAsBoolean(EXPECT_NULL);
     }
 
     public boolean isJsonValidationBool() {
-        return this.getPropertyAsBoolean(JSON_VALIDATION);
+        return getPropertyAsBoolean(JSONVALIDATION);
     }
 
     public void setInvert(boolean invert) {
-        this.setProperty("INVERT", invert);
+        setProperty(INVERT, invert);
     }
 
     public boolean isInvert() {
-        return this.getPropertyAsBoolean("INVERT");
+        return getPropertyAsBoolean(INVERT);
     }
 
     public void setIsRegex(boolean flag) {
-        this.setProperty(IS_REGEX, flag);
+        setProperty(ISREGEX, flag);
     }
 
     public boolean isUseRegex() {
-        return this.getPropertyAsBoolean(IS_REGEX, true);
+        return getPropertyAsBoolean(ISREGEX, true);
     }
 
     private void doAssert(String jsonString) {
-        Object value = JsonPath.read(jsonString, this.getJsonPath(), new Predicate[0]);
-        if (this.isJsonValidationBool()) {
+        Object value = JsonPath.read(jsonString, getJsonPath());
+
+        if (!isJsonValidationBool()) {
             if (value instanceof JSONArray) {
-                if (this.arrayMatched((JSONArray) value)) {
-                    return;
+                JSONArray arrayValue = (JSONArray) value;
+                if (arrayValue.isEmpty() && !JsonPath.isPathDefinite(getJsonPath())) {
+                    throw new IllegalStateException("JSONPath is indefinite and the extracted Value is an empty Array." +
+                            " Please use an assertion value, to be sure to get a correct result. " + getExpectedValue());
                 }
-            } else if (this.isExpectNull() && value == null || this.isEquals(value)) {
+            }
+            return;
+        }
+
+        if (value instanceof JSONArray) {
+            if (arrayMatched((JSONArray) value)) {
                 return;
             }
-
-            if (this.isExpectNull()) {
-                throw new IllegalStateException(String.format("Value expected to be null, but found '%s'", value));
-            } else {
-                String msg = "";
-                if (this.isUseRegex()) {
-                    msg = "Value expected to match regexp '%s', but it did not match: '%s'";
-                } else if (StringUtils.isNotEmpty(getOption()) && !this.isEquals(value)) {
-                    switch (getOption()) {
-                        case "CONTAINS":
-                            msg = "Value contains to be '%s', but found '%s'";
-                            break;
-                        case "NOT_CONTAINS":
-                            msg = "Value not contains to be '%s', but found '%s'";
-                            break;
-                        case "EQUALS":
-                            msg = "Value equals to be '%s', but found '%s'";
-                            break;
-                        case "NOT_EQUALS":
-                            msg = "Value not equals to be '%s', but found '%s'";
-                            break;
-                        case "GT":
-                            msg = "Value > '%s', but found '%s'";
-                            break;
-                        case "LT":
-                            msg = "Value < '%s', but found '%s'";
-                            break;
-                        case "DOCUMENT":
-                            msg = DocumentUtils.documentMsg(this.getName(), value, this.getElementCondition());
-                            break;
-                    }
-                } else {
-                    msg = "Value expected to be '%s', but found '%s'";
-                }
-                throw new IllegalStateException(String.format(msg, this.getExpectedValue(), DocumentUtils.objectToString(value, decimalFormatter)));
+        } else {
+            if ((isExpectNull() && value == null)
+                    || isEquals(value)) {
+                return;
             }
+        }
+
+        if (this.isExpectNull()) {
+            throw new IllegalStateException(String.format("Value expected to be null, but found '%s'", value));
+        } else {
+            String msg = "";
+            if (this.isUseRegex()) {
+                msg = "Value expected to match regexp '%s', but it did not match: '%s'";
+            } else if (StringUtils.isNotEmpty(getOption()) && !this.isEquals(value)) {
+                switch (getOption()) {
+                    case "CONTAINS":
+                        msg = "Value contains to be '%s', but found '%s'";
+                        break;
+                    case "NOT_CONTAINS":
+                        msg = "Value not contains to be '%s', but found '%s'";
+                        break;
+                    case "EQUALS":
+                        msg = "Value equals to be '%s', but found '%s'";
+                        break;
+                    case "NOT_EQUALS":
+                        msg = "Value not equals to be '%s', but found '%s'";
+                        break;
+                    case "GT":
+                        msg = "Value > '%s', but found '%s'";
+                        break;
+                    case "LT":
+                        msg = "Value < '%s', but found '%s'";
+                        break;
+                    case "DOCUMENT":
+                        msg = DocumentUtils.documentMsg(this.getName(), value, this.getElementCondition());
+                        break;
+                }
+            } else {
+                msg = "Value expected to be '%s', but found '%s'";
+            }
+            throw new IllegalStateException(String.format(msg, this.getExpectedValue(), DocumentUtils.objectToString(value, decimalFormatter)));
         }
     }
 
+
     private boolean arrayMatched(JSONArray value) {
-        Object[] var2 = value.toArray();
-        int var3 = var2.length;
-        List<Boolean> result = new ArrayList<>();
-        for (int var4 = 0; var4 < var3; ++var4) {
-            Object subj = var2[var4];
-            if (!StringUtils.equals(getOption(), "NOT_CONTAINS")) {
-                if (subj == null && this.isExpectNull() || this.isEquals(subj)) {
-                    return true;
-                }
-            } else {
-                result.add(this.isEquals(subj));
-            }
+        if (value.isEmpty() && "[]".equals(getExpectedValue())) {
+            return true;
         }
-        if (CollectionUtils.isNotEmpty(result) && StringUtils.equals(getOption(), "NOT_CONTAINS")) {
-            if (result.stream().filter(item -> item == true).collect(Collectors.toList()).size() == result.size()) {
+
+        for (Object subj : value.toArray()) {
+            if ((subj == null && isExpectNull())
+                    || isEquals(subj)) {
                 return true;
-            } else {
-                return false;
             }
         }
 
-        return this.isEquals(value);
-
+        return isEquals(value);
     }
 
     private boolean isGt(String v1, String v2) {
@@ -201,9 +223,13 @@ public class JSONPathAssertion extends AbstractTestElement implements Serializab
 
     private boolean isEquals(Object subj) {
         String str = DocumentUtils.objectToString(subj, decimalFormatter);
-        if (this.isUseRegex()) {
-            Pattern pattern = JMeterUtils.getPatternCache().getPattern(this.getExpectedValue());
-            return JMeterUtils.getMatcher().matches(str, pattern);
+        if (isUseRegex()) {
+            if (USE_JAVA_REGEX) {
+                return JMeterUtils.compilePattern(getExpectedValue()).matcher(str).matches();
+            } else {
+                Pattern pattern = JMeterUtils.getPatternCache().getPattern(getExpectedValue());
+                return JMeterUtils.getMatcher().matches(str, pattern);
+            }
         } else {
             if (StringUtils.isNotEmpty(getOption())) {
                 boolean refFlag = false;
@@ -232,7 +258,8 @@ public class JSONPathAssertion extends AbstractTestElement implements Serializab
                 }
                 return refFlag;
             }
-            return str.equals(this.getExpectedValue());
+            Object expected = JSONValue.parse(getExpectedValue());
+            return Objects.equals(expected, subj);
         }
     }
 
@@ -256,48 +283,66 @@ public class JSONPathAssertion extends AbstractTestElement implements Serializab
         }
     }
 
+    @Override
     public AssertionResult getResult(SampleResult samplerResult) {
-        AssertionResult result = new AssertionResult(this.getName());
+        AssertionResult result = new AssertionResult(getName());
         String responseData = samplerResult.getResponseDataAsString();
         if (responseData.isEmpty()) {
             return result.setResultForNull();
-        } else {
-            result.setFailure(false);
-            result.setFailureMessage("");
-            if (!this.isInvert()) {
-                try {
-                    this.doAssert(responseData);
-                } catch (Exception var6) {
-                    log.debug("Assertion failed", var6);
-                    result.setFailure(true);
-                    result.setFailureMessage(var6.getMessage());
-                }
-            } else {
-                try {
-                    this.doAssert(responseData);
-                    result.setFailure(true);
-                    if (this.isJsonValidationBool()) {
-                        if (this.isExpectNull()) {
-                            result.setFailureMessage("Failed that JSONPath " + this.getJsonPath() + " not matches null");
-                        } else {
-                            result.setFailureMessage("Failed that JSONPath " + this.getJsonPath() + " not matches " + this.getExpectedValue());
-                        }
-                    } else {
-                        result.setFailureMessage("Failed that JSONPath not exists: " + this.getJsonPath());
-                    }
-                } catch (Exception var5) {
-                    log.debug("Assertion failed, as expected", var5);
-                }
-            }
-
-            return result;
         }
+
+        result.setFailure(false);
+        result.setFailureMessage("");
+
+        if (!isInvert()) {
+            try {
+                doAssert(responseData);
+            } catch (Exception e) {
+                log.debug("Assertion failed", e);
+                result.setFailure(true);
+                result.setFailureMessage(e.getMessage());
+            }
+        } else {
+            try {
+                doAssert(responseData);
+                result.setFailure(true);
+                if (isJsonValidationBool()) {
+                    if (isExpectNull()) {
+                        result.setFailureMessage("Failed that JSONPath " + getJsonPath() + " not matches null");
+                    } else {
+                        result.setFailureMessage("Failed that JSONPath " + getJsonPath() + " not matches " + getExpectedValue());
+                    }
+                } else {
+                    result.setFailureMessage("Failed that JSONPath not exists: " + getJsonPath());
+                }
+            } catch (Exception e) {
+                log.debug("Assertion failed, as expected", e);
+            }
+        }
+        return result;
     }
 
+    public static String objectToString(Object subj) {
+        String str;
+        if (subj == null) {
+            str = "null";
+        } else if (subj instanceof Map) {
+            //noinspection unchecked
+            str = new JSONObject((Map<String, ?>) subj).toJSONString();
+        } else if (subj instanceof Double || subj instanceof Float) {
+            str = decimalFormatter.get().format(subj);
+        } else {
+            str = subj.toString();
+        }
+        return str;
+    }
 
+    @Override
     public void threadStarted() {
+        // nothing to do on thread start
     }
 
+    @Override
     public void threadFinished() {
         decimalFormatter.remove();
     }
