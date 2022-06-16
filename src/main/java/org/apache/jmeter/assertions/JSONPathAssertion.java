@@ -22,6 +22,7 @@ import io.metersphere.utils.DocumentUtils;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.jmeter.samplers.SampleResult;
@@ -35,8 +36,11 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * This is main class for JSONPath Assertion which verifies assertion on
@@ -187,14 +191,22 @@ public class JSONPathAssertion extends AbstractTestElement implements Serializab
 
 
     private boolean arrayMatched(JSONArray value) {
-        if (value.isEmpty() && "[]".equals(getExpectedValue())) {
-            return true;
-        }
 
+        List<Boolean> result = new ArrayList<>();
         for (Object subj : value.toArray()) {
-            if ((subj == null && isExpectNull())
-                    || isEquals(subj)) {
+            if (!StringUtils.equals(getOption(), "NOT_CONTAINS")) {
+                if (subj == null || isEquals(subj)) {
+                    return true;
+                }
+            } else {
+                result.add(isEquals(subj));
+            }
+        }
+        if (CollectionUtils.isNotEmpty(result) && StringUtils.equals(getOption(), "NOT_CONTAINS")) {
+            if (result.stream().filter(item -> item == true).collect(Collectors.toList()).size() == result.size()) {
                 return true;
+            } else {
+                return false;
             }
         }
 
