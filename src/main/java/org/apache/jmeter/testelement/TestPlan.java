@@ -28,7 +28,6 @@ import org.apache.jmeter.threads.AbstractThreadGroup;
 import org.apache.jorphan.util.JOrphanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -229,8 +228,7 @@ public class TestPlan extends AbstractTestElement implements Serializable, TestS
      */
     @Override
     public void testEnded() {
-        LoggerUtil.info("测试计划执行结束：" + this.getName() + " 还存在CSV数量：" + FileServer.getFileServer().fileSize());
-
+        LoggerUtil.info("Test plan " + this.getName() + "test end");
     }
 
     /**
