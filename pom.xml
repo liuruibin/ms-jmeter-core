@@ -6,7 +6,7 @@
 
     <groupId>io.metersphere</groupId>
     <artifactId>ms-jmeter-core</artifactId>
-    <version>jmeter-5.5_1</version>
+    <version>jmeter-5.5_2</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
