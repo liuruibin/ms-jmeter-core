@@ -238,29 +238,4 @@ public class JMeterBase {
             LoggerUtil.error("JMETER-调用存储方法失败：" + e.getMessage());
         }
     }
-
-    /**
-     * 合并掉重试结果；保留最后一次重试结果
-     *
-     * @param results
-     */
-    public static void mergeRetryResults(List<SampleResult> results) {
-        if (CollectionUtils.isNotEmpty(results)) {
-            Map<String, List<SampleResult>> resultMap = results.stream().collect(Collectors.groupingBy(SampleResult::getResourceId));
-            List<SampleResult> list = new LinkedList<>();
-            resultMap.forEach((k, v) -> {
-                if (CollectionUtils.isNotEmpty(v) && v.size() > 1) {
-                    Collections.sort(v, Comparator.comparing(SampleResult::getResourceId));
-                    SampleResult sampleResult = v.get(v.size() - 1);
-                    sampleResult.setSampleLabel(v.get(0).getSampleLabel());
-                    list.add(sampleResult);
-                } else {
-                    list.addAll(v);
-                }
-            });
-            results.clear();
-            results.addAll(list);
-        }
-
-    }
 }
