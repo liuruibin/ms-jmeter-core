@@ -1,5 +1,6 @@
 package io.metersphere.utils;
 
+import io.metersphere.dto.RequestResult;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.samplers.SampleResult;
@@ -21,23 +22,23 @@ public class RetryResultUtil {
      *
      * @param results
      */
-    public static void mergeRetryResults(List<SampleResult> results) {
+    public static void mergeRetryResults(List<RequestResult> results) {
         if (CollectionUtils.isNotEmpty(results)) {
-            Map<String, List<SampleResult>> resultMap = results.stream().collect(Collectors.groupingBy(SampleResult::getResourceId));
-            List<SampleResult> list = new LinkedList<>();
+            Map<String, List<RequestResult>> resultMap = results.stream().collect(Collectors.groupingBy(RequestResult::getResourceId));
+            List<RequestResult> list = new LinkedList<>();
             resultMap.forEach((k, v) -> {
                 if (CollectionUtils.isNotEmpty(v)) {
                     // 校验是否含重试结果
-                    List<SampleResult> isRetryResults = v
+                    List<RequestResult> isRetryResults = v
                             .stream()
-                            .filter(c -> StringUtils.isNotEmpty(c.getSampleLabel()) && c.getSampleLabel().startsWith(RETRY))
+                            .filter(c -> StringUtils.isNotEmpty(c.getName()) && c.getName().startsWith(RETRY))
                             .collect(Collectors.toList());
                     if (CollectionUtils.isNotEmpty(isRetryResults)) {
                         // 取最后执行的10 条
                         if (v.size() > 10) {
-                            Collections.sort(v, Comparator.comparing(SampleResult::getResourceId));
-                            SampleResult sampleResult = v.get(0);
-                            List<SampleResult> topTens = v.subList(v.size() - 10, v.size());
+                            Collections.sort(v, Comparator.comparing(RequestResult::getResourceId));
+                            RequestResult sampleResult = v.get(0);
+                            List<RequestResult> topTens = v.subList(v.size() - 10, v.size());
                             topTens.set(0, sampleResult);
                             assembleName(topTens);
                             list.addAll(topTens);
@@ -53,16 +54,16 @@ public class RetryResultUtil {
         }
     }
 
-    private static void assembleName(List<SampleResult> list) {
+    private static void assembleName(List<RequestResult> list) {
         // 名称排序处理
         for (int i = 0; i < list.size(); i++) {
-            list.get(i).setSampleLabel(list.get(i).getSampleLabel().replace(RETRY, RETRY_CN + i + "_"));
-            if (list.get(i).getSampleLabel().endsWith("_")) {
-                list.get(i).setSampleLabel(list.get(i).getSampleLabel().substring(0, list.get(i).getSampleLabel().length() - 1));
+            list.get(i).setName(list.get(i).getName().replace(RETRY, RETRY_CN + i + "_"));
+            if (list.get(i).getName().endsWith("_")) {
+                list.get(i).setName(list.get(i).getName().substring(0, list.get(i).getName().length() - 1));
             }
             if (i == 0) {
-                list.get(i).setSampleLabel(StringUtils.isNotEmpty(list.get(i).getSampleLabel())
-                        ? RETRY_FIRST_CN + "_" + list.get(i).getSampleLabel() : RETRY_FIRST_CN);
+                list.get(i).setName(StringUtils.isNotEmpty(list.get(i).getName())
+                        ? RETRY_FIRST_CN + "_" + list.get(i).getName() : RETRY_FIRST_CN);
             }
         }
     }
