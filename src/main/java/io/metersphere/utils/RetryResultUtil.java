@@ -46,6 +46,9 @@ public class RetryResultUtil {
                             assembleName(v);
                             list.addAll(v);
                         }
+                    } else {
+                        // 成功的结果
+                        list.addAll(v);
                     }
                 }
             });
