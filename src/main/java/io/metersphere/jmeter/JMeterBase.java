@@ -34,7 +34,7 @@ public class JMeterBase {
     }
 
     public static void addBackendListener(JmeterRunRequestDTO request, HashTree hashTree, String listenerClazz) {
-        LoggerUtil.debug("开始为报告【 " + request.getReportId() + "】，资源【" + request.getTestId() + "】添加BackendListener");
+        LoggerUtil.info("开始为报告添加BackendListener", request.getReportId());
 
         BackendListener backendListener = new BackendListener();
         backendListener.setName(request.getReportId() + "_" + request.getTestId());
@@ -60,7 +60,7 @@ public class JMeterBase {
         if (hashTree != null) {
             hashTree.add(hashTree.getArray()[0], backendListener);
         }
-        LoggerUtil.debug("开始为报告【 " + request.getReportId() + "】，资源【" + request.getTestId() + "】添加BackendListener 结束");
+        LoggerUtil.info("报告添加BackendListener 结束", request.getTestId());
     }
 
     public static RequestResult getRequestResult(SampleResult result) {
@@ -235,7 +235,7 @@ public class JMeterBase {
             dto.setRequestResults(requestResults);
             ListenerUtil.setEev(dto, environmentList);
         } catch (Exception e) {
-            LoggerUtil.error("JMETER-调用存储方法失败：" + e.getMessage());
+            LoggerUtil.error("JMETER-调用存储方法失败", dto.getReportId(), e);
         }
     }
 }
