@@ -36,7 +36,7 @@ public class MsBackendListenerClient extends AbstractBackendListenerClient imple
 
     @Override
     public void handleSampleResults(List<SampleResult> sampleResults, BackendListenerContext context) {
-        LoggerUtil.info("接收到JMETER执行数据【" + sampleResults.size() + " 】, " + dto.getReportId());
+        LoggerUtil.info("接收到JMETER执行数据【" + sampleResults.size() + " 】", dto.getReportId());
         if (execListener != null) {
             execListener.handleTeardownTest(sampleResults, dto, producerProps);
         } else {
@@ -48,15 +48,15 @@ public class MsBackendListenerClient extends AbstractBackendListenerClient imple
     public void teardownTest(BackendListenerContext context) {
         try {
             if (FileServer.getFileServer() != null) {
-                LoggerUtil.info("报告【" + dto.getReportId() + "】资源【 " + dto.getTestId() + " 】开始关闭CSV");
+                LoggerUtil.info("进入监听，开始关闭CSV", dto.getReportId());
                 FileServer.getFileServer().closeCsv(dto.getReportId());
             }
-            LoggerUtil.info("报告【" + dto.getReportId() + "】资源【 " + dto.getTestId() + " 】开始调用存储方法");
+            LoggerUtil.info("进入监听，开始调用存储方法", dto.getReportId());
             execListener.testEnded(dto, producerProps);
-            LoggerUtil.info("JMETER-测试报告【" + dto.getReportId() + "】资源【 " + dto.getTestId() + " 】执行结束");
+            LoggerUtil.info("JMETER-测试报告执行结束", dto.getReportId());
             super.teardownTest(context);
         } catch (Exception e) {
-            LoggerUtil.error("JMETER-测试报告【" + dto.getReportId() + "】资源【 " + dto.getTestId() + " 】执行异常", e);
+            LoggerUtil.error("JMETER执行机执行异常", dto.getReportId(), e);
         } finally {
             if (JMeterEngineCache.runningEngine.containsKey(dto.getReportId())) {
                 JMeterEngineCache.runningEngine.remove(dto.getReportId());
@@ -100,7 +100,7 @@ public class MsBackendListenerClient extends AbstractBackendListenerClient imple
             // 初始化
             execListener.setupTest();
         } catch (Exception e) {
-            LoggerUtil.error("报告【" + dto.getReportId() + "】,初始化结果处理类失败：", e);
+            LoggerUtil.error("初始化结果处理类失败", dto.getReportId(), e);
         }
     }
 }

@@ -24,7 +24,7 @@ public class LocalRunner {
         StandardJMeterEngine engine = new StandardJMeterEngine();
         engine.configure(jmxTree);
         try {
-            LoggerUtil.info("LocalRunner 开始执行报告【" + report + "】");
+            LoggerUtil.info("LocalRunner 开始执行报告",report);
             engine.runTest();
             JMeterEngineCache.runningEngine.put(report, engine);
         } catch (JMeterEngineException e) {
