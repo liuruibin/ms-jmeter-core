@@ -66,14 +66,14 @@ public class LoggerUtil {
     public static void info(String msg, String reportId) {
         Logger logger = LoggerUtil.getLogger();
         if (logger != null && logger.isInfoEnabled()) {
-            logger.info("REPORT-ID:[ " + reportId + " ], " + LoggerUtil.getMsg(msg));
+            logger.info(LoggerUtil.getLogMethod() + "[REPORT-ID: " + reportId + "] " + msg);
         }
     }
 
     public static void info(String msg, String reportId, Object o1) {
         Logger logger = LoggerUtil.getLogger();
         if (logger != null && logger.isInfoEnabled()) {
-            logger.info("REPORT-ID:[ " + reportId + " ], " + LoggerUtil.getMsg(msg), o1);
+            logger.info(LoggerUtil.getLogMethod() + "[REPORT-ID: " + reportId + "] " + msg, o1);
         }
     }
 
@@ -171,7 +171,7 @@ public class LoggerUtil {
     public static void error(String msg, String reportId, Object o1) {
         Logger logger = LoggerUtil.getLogger();
         if (logger != null && logger.isInfoEnabled()) {
-            logger.error("REPORT-ID:[ " + reportId + " ], " + LoggerUtil.getMsg(msg), o1);
+            logger.error(LoggerUtil.getLogMethod() + "[REPORT-ID: " + reportId + "] " + msg, o1);
         }
     }
 
