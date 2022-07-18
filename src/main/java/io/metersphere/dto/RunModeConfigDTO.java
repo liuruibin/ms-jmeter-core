@@ -28,4 +28,7 @@ public class RunModeConfigDTO {
     private Map<String, String> envMap;
     private String environmentType;
     private String environmentGroupId;
+    //ui 测试
+    private String browser;
+    private boolean headlessEnabled;
 }
