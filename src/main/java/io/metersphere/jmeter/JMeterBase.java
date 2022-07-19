@@ -20,8 +20,10 @@ import org.apache.jmeter.visualizers.backend.BackendListener;
 import org.apache.jorphan.collections.HashTree;
 
 import java.lang.reflect.Field;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 public class JMeterBase {
 
@@ -225,7 +227,7 @@ public class JMeterBase {
                     boolean resultNotFilterOut = ListenerUtil.checkResultIsNotFilterOut(requestResult);
                     if (resultNotFilterOut) {
                         if (StringUtils.isNotEmpty(requestResult.getName()) && requestResult.getName().startsWith("Transaction=")) {
-                            requestResults.addAll(requestResult.getSubRequestResults());
+                            transactionFormat(requestResult.getSubRequestResults(), requestResults);
                         } else {
                             requestResults.add(requestResult);
                         }
@@ -236,6 +238,16 @@ public class JMeterBase {
             ListenerUtil.setEev(dto, environmentList);
         } catch (Exception e) {
             LoggerUtil.error("JMETER-调用存储方法失败", dto.getReportId(), e);
+        }
+    }
+
+    private static void transactionFormat(List<RequestResult> requestResults, List<RequestResult> refRes) {
+        for (RequestResult requestResult : requestResults) {
+            if (CollectionUtils.isEmpty(requestResult.getSubRequestResults())) {
+                refRes.add(requestResult);
+            } else {
+                transactionFormat(requestResult.getSubRequestResults(), refRes);
+            }
         }
     }
 }
