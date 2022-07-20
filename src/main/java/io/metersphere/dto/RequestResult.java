@@ -39,6 +39,8 @@ public class RequestResult {
 
     private String body;
 
+    private String status;
+
     private int totalAssertions = 0;
 
     private int passAssertions = 0;
