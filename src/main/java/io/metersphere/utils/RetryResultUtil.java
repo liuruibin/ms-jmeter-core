@@ -12,7 +12,8 @@ import java.util.stream.Collectors;
  * 重试报告处理util
  */
 public class RetryResultUtil {
-    public final static String RETRY = "MsRetry_";
+    public final static String RETRY = "MsRetry_\\d+_";
+    public final static String START_RETRY = "MsRetry_";
     public final static String RETRY_CN = "重试";
     public final static String RETRY_FIRST_CN = "首次";
     public final static String MS_CLEAR_LOOPS_VAR = "MS_CLEAR_LOOPS_VAR_";
@@ -31,7 +32,7 @@ public class RetryResultUtil {
                     // 校验是否含重试结果
                     List<RequestResult> isRetryResults = v
                             .stream()
-                            .filter(c -> StringUtils.isNotEmpty(c.getName()) && c.getName().startsWith(RETRY))
+                            .filter(c -> StringUtils.isNotEmpty(c.getName()) && c.getName().startsWith(START_RETRY))
                             .collect(Collectors.toList());
                     if (CollectionUtils.isNotEmpty(isRetryResults)) {
                         // 取最后执行的10 条
@@ -60,7 +61,7 @@ public class RetryResultUtil {
     private static void assembleName(List<RequestResult> list) {
         // 名称排序处理
         for (int i = 0; i < list.size(); i++) {
-            list.get(i).setName(list.get(i).getName().replace(RETRY, RETRY_CN + i + "_"));
+            list.get(i).setName(list.get(i).getName().replaceAll(RETRY, RETRY_CN + i + "_"));
             if (list.get(i).getName().endsWith("_")) {
                 list.get(i).setName(list.get(i).getName().substring(0, list.get(i).getName().length() - 1));
             }
