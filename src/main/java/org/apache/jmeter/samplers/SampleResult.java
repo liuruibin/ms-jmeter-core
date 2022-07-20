@@ -1140,7 +1140,7 @@ public class SampleResult implements Serializable, Cloneable, Searchable {
      * setStartTime is used by HTTPSampleResult to clone the parent sampler and
      * allow the original start time to be kept
      */
-    protected final void setStartTime(long start) {
+    public void setStartTime(long start) {
         startTime = start;
         if (START_TIMESTAMP) {
             timeStamp = startTime;
