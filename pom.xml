@@ -6,9 +6,10 @@
 
     <groupId>io.metersphere</groupId>
     <artifactId>ms-jmeter-core</artifactId>
-    <version>jmeter-5.5_2</version>
+    <version>${revision}</version>
 
     <properties>
+        <revision>2.0</revision>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
         <jmeter.version>5.5</jmeter.version>
