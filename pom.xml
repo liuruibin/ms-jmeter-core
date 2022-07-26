@@ -4,19 +4,18 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.metersphere</groupId>
+    <parent>
+        <groupId>io.metersphere</groupId>
+        <artifactId>metersphere</artifactId>
+        <version>dev</version>
+    </parent>
+
     <artifactId>ms-jmeter-core</artifactId>
     <version>${revision}</version>
 
     <properties>
         <revision>dev</revision>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.version>1.8</java.version>
-        <jmeter.version>5.5</jmeter.version>
-        <nacos.version>1.4.1</nacos.version>
-        <dubbo.version>2.7.15</dubbo.version>
-        <groovy.version>3.0.11</groovy.version>
-        <metersphere-jmeter-functions.version>1.4</metersphere-jmeter-functions.version>
     </properties>
 
     <name>ms-jmeter-core</name>
@@ -49,14 +48,13 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.20</version>
         </dependency>
 
         <!--  webdriver -->
         <dependency>
             <groupId>io.metersphere</groupId>
             <artifactId>jmeter-plugins-webdriver</artifactId>
-            <version>3.4.2</version>
+            <version>${jmeter-plugins-webdriver.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.jmeter</groupId>
@@ -84,7 +82,6 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
-            <version>4.1</version>
         </dependency>
 
         <!-- jmeter -->
@@ -107,13 +104,14 @@
         <dependency>
             <groupId>org.apache.xmlgraphics</groupId>
             <artifactId>xmlgraphics-commons</artifactId>
-            <version>2.6</version>
+            <version>${xmlgraphics-commons.version}</version>
         </dependency>
 
+        <!-- 2.7.2 版本在大批量执行中会造成阻塞 -->
         <dependency>
             <groupId>org.python</groupId>
             <artifactId>jython-standalone</artifactId>
-            <version>2.7.2</version>
+            <version>${jython.version}</version>
         </dependency>
 
         <dependency>
@@ -148,19 +146,19 @@
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
-            <version>7.4.1.jre8</version>
+            <version>${mssql-jdbc.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.3.2</version>
+            <version>${postgresql.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.oracle.database.jdbc</groupId>
             <artifactId>ojdbc8</artifactId>
-            <version>19.7.0.0</version>
+            <version>${oracle-database.version}</version>
         </dependency>
 
         <!-- Zookeeper -->
@@ -178,7 +176,7 @@
         <dependency>
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
-            <version>3.4.14</version>
+            <version>${zookeeper.version}</version>
             <exclusions>
                 <exclusion>
                     <artifactId>slf4j-log4j12</artifactId>
@@ -189,12 +187,10 @@
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-framework</artifactId>
-            <version>4.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-recipes</artifactId>
-            <version>4.0.1</version>
         </dependency>
 
         <!-- nacos -->
@@ -217,24 +213,23 @@
         <dependency>
             <groupId>commons-beanutils</groupId>
             <artifactId>commons-beanutils</artifactId>
-            <version>1.9.4</version>
+            <version>${commons-beanutils.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.12.0</version>
         </dependency>
 
         <dependency>
             <groupId>io.metersphere</groupId>
             <artifactId>jmeter-plugins-dubbo</artifactId>
-            <version>2.7.16</version>
+            <version>${jmeter-plugins-dubbo.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>hessian-lite</artifactId>
-            <version>3.2.12</version>
+            <version>${hessian-lite.version}</version>
         </dependency>
 
         <!-- ApacheJMeter_core scope 是 runtime，这里去掉scope -->
@@ -285,24 +280,18 @@
             <artifactId>ApacheJMeter_native</artifactId>
             <version>${jmeter.version}</version>
         </dependency>
-        <dependency>
-            <groupId>commons-collections</groupId>
-            <artifactId>commons-collections</artifactId>
-            <version>3.2.2</version>
-        </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpmime -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpmime</artifactId>
-            <version>4.5.13</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.brotli/dec -->
         <dependency>
             <groupId>org.brotli</groupId>
             <artifactId>dec</artifactId>
-            <version>0.1.2</version>
+            <version>${dec.version}</version>
         </dependency>
 
 
@@ -310,24 +299,23 @@
         <dependency>
             <groupId>com.jayway.jsonpath</groupId>
             <artifactId>json-path</artifactId>
-            <version>2.4.0</version>
         </dependency>
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20171018</version>
+            <version>${org-json.version}</version>
         </dependency>
         <!-- jmeter执行机 -->
         <!--钉钉sdk-->
         <dependency>
             <groupId>com.aliyun</groupId>
             <artifactId>alibaba-dingtalk-service-sdk</artifactId>
-            <version>2.0.0</version>
+            <version>${dingtalk-sdk.version}</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.11.0</version>
+            <version>${commons-io.version}</version>
         </dependency>
 
         <dependency>
@@ -339,14 +327,6 @@
     </dependencies>
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-            </plugin>
             <!-- Nexus Staging Plugin -->
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
