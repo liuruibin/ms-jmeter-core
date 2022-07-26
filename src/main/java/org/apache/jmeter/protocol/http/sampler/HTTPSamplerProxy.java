@@ -115,6 +115,9 @@ public final class HTTPSamplerProxy extends HTTPSamplerBase implements Interrupt
     @Override
     public URL getUrl() throws MalformedURLException {
         String path = this.getPath();
+        if (path.startsWith("//")) {
+            path.replaceFirst("/" ,"");
+        }
         // Hack to allow entire URL to be provided in host field
         if (path.startsWith(HTTP_PREFIX)
                 || path.startsWith(HTTPS_PREFIX)) {
