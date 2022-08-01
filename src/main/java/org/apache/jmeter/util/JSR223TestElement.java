@@ -70,7 +70,9 @@ public abstract class JSR223TestElement extends ScriptingTestElement
      */
     private String cacheKey = "";
 
-    /** md5 of the script, used as an unique key for the cache */
+    /**
+     * md5 of the script, used as an unique key for the cache
+     */
     private String scriptMd5 = null;
 
     /**
@@ -80,6 +82,7 @@ public abstract class JSR223TestElement extends ScriptingTestElement
         private LazyHolder() {
             super();
         }
+
         public static final ScriptEngineManager INSTANCE = new ScriptEngineManager();
     }
 
@@ -102,7 +105,7 @@ public abstract class JSR223TestElement extends ScriptingTestElement
         String lang = getScriptLanguageWithDefault();
         ScriptEngine scriptEngine = getInstance().getEngineByName(lang);
         if (scriptEngine == null) {
-            throw new ScriptException("Cannot find engine named: '" + lang + "', ensure you set language field in JSR223 Test Element: "+getName());
+            throw new ScriptException("Cannot find engine named: '" + lang + "', ensure you set language field in JSR223 Test Element: " + getName());
         }
 
         return scriptEngine;
@@ -121,6 +124,7 @@ public abstract class JSR223TestElement extends ScriptingTestElement
 
     /**
      * Populate variables to be passed to scripts
+     *
      * @param bindings Bindings
      */
     protected void populateBindings(Bindings bindings) {
@@ -128,7 +132,7 @@ public abstract class JSR223TestElement extends ScriptingTestElement
         final String fileName = getFilename();
         final String scriptParameters = getParameters();
         // Use actual class name for log
-        final Logger elementLogger = LoggerFactory.getLogger(getClass().getName() + "."+getName());
+        final Logger elementLogger = LoggerFactory.getLogger(getClass().getName() + "." + getName());
         bindings.put("log", elementLogger); // $NON-NLS-1$ (this name is fixed)
         bindings.put("Label", label); // $NON-NLS-1$ (this name is fixed)
         bindings.put("FileName", fileName); // $NON-NLS-1$ (this name is fixed)
@@ -157,10 +161,11 @@ public abstract class JSR223TestElement extends ScriptingTestElement
      * This method will run inline script or file script with special behaviour for file script:
      * - If ScriptEngine implements Compilable script will be compiled and cached
      * - If not if will be run
+     *
      * @param scriptEngine ScriptEngine
-     * @param pBindings {@link Bindings} might be null
+     * @param pBindings    {@link Bindings} might be null
      * @return Object returned by script
-     * @throws IOException when reading the script fails
+     * @throws IOException     when reading the script fails
      * @throws ScriptException when compiling or evaluation of the script fails
      */
     protected Object processFileOrScript(ScriptEngine scriptEngine, final Bindings pBindings)
@@ -171,7 +176,7 @@ public abstract class JSR223TestElement extends ScriptingTestElement
                 GroovyScriptEngineImpl groovyScriptEngine = (GroovyScriptEngineImpl) scriptEngine;
                 if (loadJarService == null) {
                     loadJarService = Class.forName("io.metersphere.api.jmeter.MsGroovyLoadJarService", true,
-                                    Thread.currentThread().getContextClassLoader())
+                            Thread.currentThread().getContextClassLoader())
                             .asSubclass(LoadJarService.class)
                             .getDeclaredConstructor().newInstance();
                     if (loadJarService != null) {
@@ -193,8 +198,9 @@ public abstract class JSR223TestElement extends ScriptingTestElement
         File scriptFile = new File(getFilename());
         // Hack: bsh-2.0b5.jar BshScriptEngine implements Compilable but throws
         // "java.lang.Error: unimplemented"
-        boolean supportsCompilable = scriptEngine instanceof Compilable
-                && !"bsh.engine.BshScriptEngine".equals(scriptEngine.getClass().getName()); // NOSONAR // $NON-NLS-1$
+        boolean supportsCompilable = false;
+        // scriptEngine instanceof Compilable
+        // && !"bsh.engine.BshScriptEngine".equals(scriptEngine.getClass().getName()); // NOSONAR // $NON-NLS-1$
 
         ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         // 将当前类加载器设置为 loader ，解决由系统类加载器加载的 JMeter 无法动态加载 jar 包问题
@@ -269,7 +275,7 @@ public abstract class JSR223TestElement extends ScriptingTestElement
 
     /**
      * @return boolean true if element is not compilable or if compilation succeeds
-     * @throws IOException if script is missing
+     * @throws IOException     if script is missing
      * @throws ScriptException if compilation fails
      */
     public boolean compile()
