@@ -197,8 +197,7 @@ public abstract class JSR223TestElement extends ScriptingTestElement
         File scriptFile = new File(getFilename());
         // Hack: bsh-2.0b5.jar BshScriptEngine implements Compilable but throws
         // "java.lang.Error: unimplemented"
-        boolean supportsCompilable = scriptEngine instanceof Compilable
-                && !("bsh.engine.BshScriptEngine".equals(scriptEngine.getClass().getName())); // NOSONAR // $NON-NLS-1$
+        boolean supportsCompilable = false;
 
         ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         // 将当前类加载器设置为 loader ，解决由系统类加载器加载的 JMeter 无法动态加载 jar 包问题
