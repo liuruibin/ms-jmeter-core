@@ -30,7 +30,6 @@ public class MsBackendListenerClient extends AbstractBackendListenerClient imple
     public void setupTest(BackendListenerContext context) throws Exception {
         this.setParam(context);
         LoggerUtil.info("TestStarted接收到参数：报告【" + JSON.toJSONString(dto) + " 】");
-        LoggerUtil.info("TestStarted接收到参数：KAFKA【" + JSON.toJSONString(producerProps) + " 】");
         super.setupTest(context);
     }
 
@@ -47,6 +46,7 @@ public class MsBackendListenerClient extends AbstractBackendListenerClient imple
     @Override
     public void teardownTest(BackendListenerContext context) {
         try {
+            super.teardownTest(context);
             if (FileServer.getFileServer() != null) {
                 LoggerUtil.info("进入监听，开始关闭CSV", dto.getReportId());
                 FileServer.getFileServer().closeCsv(dto.getReportId());
@@ -54,7 +54,6 @@ public class MsBackendListenerClient extends AbstractBackendListenerClient imple
             LoggerUtil.info("进入监听，开始调用存储方法", dto.getReportId());
             execListener.testEnded(dto, producerProps);
             LoggerUtil.info("JMETER-测试报告执行结束", dto.getReportId());
-            super.teardownTest(context);
         } catch (Exception e) {
             LoggerUtil.error("JMETER执行机执行异常", dto.getReportId(), e);
         } finally {
