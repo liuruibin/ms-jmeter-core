@@ -389,7 +389,7 @@ public class TCPSampler extends AbstractSampler implements ThreadListener, Inter
                 res.setSamplerData(req);
                 //替换原来的编码
                 protocolHandler.write(os, req , getCharset());
-                String in = protocolHandler.read(is, res);
+                String in = protocolHandler.read(is, res , getCharset());
                 isSuccessful = setupSampleResult(res, in, null, protocolHandler);
             }
         } catch (ReadException ex) {
