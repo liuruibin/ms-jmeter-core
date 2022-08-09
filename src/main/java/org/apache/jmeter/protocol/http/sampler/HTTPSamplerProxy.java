@@ -59,7 +59,51 @@ public final class HTTPSamplerProxy extends HTTPSamplerBase implements Interrupt
         setImplementation(impl);
     }
 
-    /** {@inheritDoc} */
+    protected String toExternalForm(URL u) {
+        int len = u.getProtocol().length() + 1;
+        if (u.getAuthority() != null && u.getAuthority().length() > 0)
+            len += 2 + u.getAuthority().length();
+        if (u.getPath() != null) {
+            len += u.getPath().length();
+        }
+        if (u.getQuery() != null) {
+            len += 1 + u.getQuery().length();
+        }
+        if (u.getRef() != null)
+            len += 1 + u.getRef().length();
+
+        StringBuffer result = new StringBuffer(len);
+        result.append(u.getProtocol());
+        result.append(":");
+        if (u.getAuthority() != null && u.getAuthority().length() > 0) {
+            result.append("//");
+            result.append(u.getAuthority());
+        }
+        if (StringUtils.isNotEmpty(u.getPath())) {
+            int index = 0;
+            for (int i = 0; i < u.getPath().length(); i++) {
+                char ch = u.getPath().charAt(i);
+                if (String.valueOf(ch).equals("/")) {
+                    index++;
+                } else {
+                    break;
+                }
+            }
+            result.append("/" + u.getPath().substring(index));
+        }
+        if (u.getQuery() != null) {
+            result.append('?');
+            result.append(u.getQuery());
+        }
+        if (u.getRef() != null) {
+            result.append("#");
+            result.append(u.getRef());
+        }
+        return result.toString();
+    }
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected HTTPSampleResult sample(URL u, String method, boolean areFollowingRedirect, int depth) {
         // When Retrieve Embedded resources + Concurrent Pool is used
@@ -72,6 +116,14 @@ public final class HTTPSamplerProxy extends HTTPSamplerBase implements Interrupt
             } catch (Exception ex) {
                 return errorResult(ex, new HTTPSampleResult());
             }
+        }
+        try {
+            String url = toExternalForm(u);
+            if (StringUtils.isNotEmpty(url) && url.startsWith("http:/http")) {
+                url = url.substring(6);
+            }
+            u = new URL(url);
+        } catch (Exception ex) {
         }
         return impl.sample(u, method, areFollowingRedirect, depth);
     }
