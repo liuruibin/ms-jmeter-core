@@ -17,13 +17,9 @@
 
 package org.apache.jmeter.util;
 
-import io.metersphere.jmeter.LoadJarService;
-import io.metersphere.utils.LoggerUtil;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections4.map.LRUMap;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.reflect.MethodUtils;
-import org.apache.jmeter.NewDriver;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.samplers.Sampler;
 import org.apache.jmeter.testelement.TestStateListener;
@@ -31,7 +27,6 @@ import org.apache.jmeter.threads.JMeterContext;
 import org.apache.jmeter.threads.JMeterContextService;
 import org.apache.jmeter.threads.JMeterVariables;
 import org.apache.jorphan.util.JOrphanUtils;
-import org.codehaus.groovy.jsr223.GroovyScriptEngineImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,8 +50,6 @@ public abstract class JSR223TestElement extends ScriptingTestElement
         implements Serializable, TestStateListener {
     private static final long serialVersionUID = 233L;
 
-    private LoadJarService loadJarService;
-
     private static final Logger logger = LoggerFactory.getLogger(JSR223TestElement.class);
     /**
      * Cache of compiled scripts
@@ -70,7 +63,9 @@ public abstract class JSR223TestElement extends ScriptingTestElement
      */
     private String cacheKey = "";
 
-    /** md5 of the script, used as an unique key for the cache */
+    /**
+     * md5 of the script, used as an unique key for the cache
+     */
     private String scriptMd5 = null;
 
     /**
@@ -165,26 +160,7 @@ public abstract class JSR223TestElement extends ScriptingTestElement
      */
     protected Object processFileOrScript(ScriptEngine scriptEngine, final Bindings pBindings)
             throws IOException, ScriptException {
-
-        if (scriptEngine instanceof GroovyScriptEngineImpl) {
-            try {
-                GroovyScriptEngineImpl groovyScriptEngine = (GroovyScriptEngineImpl) scriptEngine;
-                if (loadJarService == null) {
-                    loadJarService = Class.forName("io.metersphere.api.jmeter.MsGroovyLoadJarService", true,
-                                    Thread.currentThread().getContextClassLoader())
-                            .asSubclass(LoadJarService.class)
-                            .getDeclaredConstructor().newInstance();
-                    if (loadJarService != null) {
-                        loadJarService.loadGroovyJar(groovyScriptEngine.getClassLoader());
-                    }
-                }
-            } catch (ClassNotFoundException ignore) {
-                // 忽略这个异常
-            } catch (Exception e) {
-                LoggerUtil.error("加载Groovy jar失败：", e);
-            }
-        }
-
+        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         Bindings bindings = pBindings;
         if (bindings == null) {
             bindings = scriptEngine.createBindings();
@@ -193,16 +169,7 @@ public abstract class JSR223TestElement extends ScriptingTestElement
         File scriptFile = new File(getFilename());
         // Hack: bsh-2.0b5.jar BshScriptEngine implements Compilable but throws
         // "java.lang.Error: unimplemented"
-        boolean supportsCompilable = scriptEngine instanceof Compilable
-                && !"bsh.engine.BshScriptEngine".equals(scriptEngine.getClass().getName()); // NOSONAR // $NON-NLS-1$
-
-        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
-        // 将当前类加载器设置为 loader ，解决由系统类加载器加载的 JMeter 无法动态加载 jar 包问题
-        // 同时隔离在 beanshell 中访问由系统类加载器加载的其他类
-        if (MethodUtils.getAccessibleMethod(NewDriver.class, "setContextClassLoader") != null) {
-            NewDriver.setContextClassLoader();
-        }
-
+        boolean supportsCompilable = false;
         try {
             if (!StringUtils.isEmpty(getFilename())) {
                 if (scriptFile.exists() && scriptFile.canRead()) {

@@ -58,7 +58,7 @@ public class JMeterBase {
             arguments.addArgument(BackendListenerConstants.KAFKA_CONFIG.name(), JSON.toJSONString(request.getKafkaConfig()));
         }
         backendListener.setArguments(arguments);
-        backendListener.setClassname(MsBackendListenerClient.class.getCanonicalName());
+        backendListener.setClassname(listenerClazz);
         if (hashTree != null) {
             hashTree.add(hashTree.getArray()[0], backendListener);
         }

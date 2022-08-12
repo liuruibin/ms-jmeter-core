@@ -17,7 +17,11 @@
 
 package org.apache.jmeter.testelement;
 
+import com.alibaba.fastjson.JSON;
+import io.metersphere.jmeter.MsClassLoader;
+import io.metersphere.jmeter.MsDynamicClassLoader;
 import io.metersphere.utils.LoggerUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.NewDriver;
 import org.apache.jmeter.config.Arguments;
 import org.apache.jmeter.services.FileServer;
@@ -28,6 +32,7 @@ import org.apache.jmeter.threads.AbstractThreadGroup;
 import org.apache.jorphan.util.JOrphanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -130,6 +135,7 @@ public class TestPlan extends AbstractTestElement implements Serializable, TestS
 
     /**
      * Set JMeter in functional mode
+     *
      * @param funcMode boolean functional mode
      */
     private static void setGlobalFunctionalMode(boolean funcMode) {
@@ -170,7 +176,7 @@ public class TestPlan extends AbstractTestElement implements Serializable, TestS
 
     public void setTestPlanClasspathArray(String[] text) {
         StringBuilder cat = new StringBuilder();
-        for (int idx=0; idx < text.length; idx++) {
+        for (int idx = 0; idx < text.length; idx++) {
             if (idx > 0) {
                 cat.append(CLASSPATH_SEPARATOR);
             }
@@ -185,6 +191,7 @@ public class TestPlan extends AbstractTestElement implements Serializable, TestS
 
     /**
      * Returns the classpath
+     *
      * @return classpath
      */
     public String getTestPlanClasspath() {
@@ -215,8 +222,7 @@ public class TestPlan extends AbstractTestElement implements Serializable, TestS
     /**
      * Adds a feature to the AbstractThreadGroup attribute of the TestPlan object.
      *
-     * @param group
-     *            the feature to be added to the AbstractThreadGroup attribute
+     * @param group the feature to be added to the AbstractThreadGroup attribute
      */
     public void addThreadGroup(AbstractThreadGroup group) {
         threadGroups.add(group);
@@ -236,7 +242,6 @@ public class TestPlan extends AbstractTestElement implements Serializable, TestS
     @Override
     public void testEnded(String host) {
         testEnded();
-
     }
 
     /**
@@ -263,6 +268,17 @@ public class TestPlan extends AbstractTestElement implements Serializable, TestS
                 log.error("Error adding {} to classpath", path, e);
             }
         }
+        // 使用自定义加载器
+        String jarStr = this.getPropertyAsString("JAR_PATH");
+        LoggerUtil.info(this.getName() + "开始加载自定义JAR", jarStr);
+        if (StringUtils.isNotEmpty(jarStr)) {
+            List<String> jarPaths = JSON.parseObject(jarStr, List.class);
+            MsDynamicClassLoader loader = MsClassLoader.loadJar(jarPaths);
+            if (loader != null) {
+                Thread.currentThread().setContextClassLoader(loader);
+            }
+        }
+        LoggerUtil.info(this.getName() + "自定义JAR加载完成");
     }
 
     /**
