@@ -18,8 +18,8 @@
 package org.apache.jmeter.testelement;
 
 import com.alibaba.fastjson.JSON;
+import groovy.lang.GroovyClassLoader;
 import io.metersphere.jmeter.MsClassLoader;
-import io.metersphere.jmeter.MsDynamicClassLoader;
 import io.metersphere.utils.LoggerUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.NewDriver;
@@ -29,6 +29,7 @@ import org.apache.jmeter.testelement.property.BooleanProperty;
 import org.apache.jmeter.testelement.property.JMeterProperty;
 import org.apache.jmeter.testelement.property.TestElementProperty;
 import org.apache.jmeter.threads.AbstractThreadGroup;
+import org.apache.jmeter.threads.JMeterContextService;
 import org.apache.jorphan.util.JOrphanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -273,9 +274,10 @@ public class TestPlan extends AbstractTestElement implements Serializable, TestS
         LoggerUtil.info(this.getName() + "开始加载自定义JAR", jarStr);
         if (StringUtils.isNotEmpty(jarStr)) {
             List<String> jarPaths = JSON.parseObject(jarStr, List.class);
-            MsDynamicClassLoader loader = MsClassLoader.loadJar(jarPaths);
+            GroovyClassLoader loader = new GroovyClassLoader();
+            MsClassLoader.loadJar(jarPaths, loader);
             if (loader != null) {
-                Thread.currentThread().setContextClassLoader(loader);
+                JMeterContextService.getContext().getVariables().putObject("MS_CLASS_LOADER", loader);
             }
         }
         LoggerUtil.info(this.getName() + "自定义JAR加载完成");
