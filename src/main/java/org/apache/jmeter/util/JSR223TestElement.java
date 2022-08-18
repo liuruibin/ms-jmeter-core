@@ -17,6 +17,7 @@
 
 package org.apache.jmeter.util;
 
+import groovy.lang.GroovyClassLoader;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections4.map.LRUMap;
 import org.apache.commons.lang3.StringUtils;
@@ -27,6 +28,7 @@ import org.apache.jmeter.threads.JMeterContext;
 import org.apache.jmeter.threads.JMeterContextService;
 import org.apache.jmeter.threads.JMeterVariables;
 import org.apache.jorphan.util.JOrphanUtils;
+import org.codehaus.groovy.jsr223.GroovyScriptEngineImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,9 +44,6 @@ import java.util.Properties;
 
 /**
  * Base class for JSR223 Test elements
- * <p>
- * 将当前类加载器设置为 loader ，解决由系统类加载器加载的 JMeter 无法动态加载 jar 包问题
- * 同时隔离在 beanshell 中访问由系统类加载器加载的其他类
  */
 public abstract class JSR223TestElement extends ScriptingTestElement
         implements Serializable, TestStateListener {
@@ -75,6 +74,7 @@ public abstract class JSR223TestElement extends ScriptingTestElement
         private LazyHolder() {
             super();
         }
+
         public static final ScriptEngineManager INSTANCE = new ScriptEngineManager();
     }
 
@@ -97,7 +97,7 @@ public abstract class JSR223TestElement extends ScriptingTestElement
         String lang = getScriptLanguageWithDefault();
         ScriptEngine scriptEngine = getInstance().getEngineByName(lang);
         if (scriptEngine == null) {
-            throw new ScriptException("Cannot find engine named: '" + lang + "', ensure you set language field in JSR223 Test Element: "+getName());
+            throw new ScriptException("Cannot find engine named: '" + lang + "', ensure you set language field in JSR223 Test Element: " + getName());
         }
 
         return scriptEngine;
@@ -116,6 +116,7 @@ public abstract class JSR223TestElement extends ScriptingTestElement
 
     /**
      * Populate variables to be passed to scripts
+     *
      * @param bindings Bindings
      */
     protected void populateBindings(Bindings bindings) {
@@ -123,7 +124,7 @@ public abstract class JSR223TestElement extends ScriptingTestElement
         final String fileName = getFilename();
         final String scriptParameters = getParameters();
         // Use actual class name for log
-        final Logger elementLogger = LoggerFactory.getLogger(getClass().getName() + "."+getName());
+        final Logger elementLogger = LoggerFactory.getLogger(getClass().getName() + "." + getName());
         bindings.put("log", elementLogger); // $NON-NLS-1$ (this name is fixed)
         bindings.put("Label", label); // $NON-NLS-1$ (this name is fixed)
         bindings.put("FileName", fileName); // $NON-NLS-1$ (this name is fixed)
@@ -132,6 +133,7 @@ public abstract class JSR223TestElement extends ScriptingTestElement
         bindings.put("args", args); // $NON-NLS-1$ (this name is fixed)
         // Add variables for access to context and variables
         JMeterContext jmctx = JMeterContextService.getContext();
+
         bindings.put("ctx", jmctx); // $NON-NLS-1$ (this name is fixed)
         JMeterVariables vars = jmctx.getVariables();
         bindings.put("vars", vars); // $NON-NLS-1$ (this name is fixed)
@@ -152,15 +154,27 @@ public abstract class JSR223TestElement extends ScriptingTestElement
      * This method will run inline script or file script with special behaviour for file script:
      * - If ScriptEngine implements Compilable script will be compiled and cached
      * - If not if will be run
+     *
      * @param scriptEngine ScriptEngine
-     * @param pBindings {@link Bindings} might be null
+     * @param pBindings    {@link Bindings} might be null
      * @return Object returned by script
-     * @throws IOException when reading the script fails
+     * @throws IOException     when reading the script fails
      * @throws ScriptException when compiling or evaluation of the script fails
      */
     protected Object processFileOrScript(ScriptEngine scriptEngine, final Bindings pBindings)
             throws IOException, ScriptException {
-        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+        ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        // 设置自定义类加载器
+        if (JMeterContextService.getContext().getVariables().getObject("MS_CLASS_LOADER") != null) {
+            GroovyClassLoader classLoader = (GroovyClassLoader) JMeterContextService.getContext().getVariables().getObject("MS_CLASS_LOADER");
+            if (scriptEngine instanceof GroovyScriptEngineImpl) {
+                GroovyScriptEngineImpl groovyScriptEngine = (GroovyScriptEngineImpl) scriptEngine;
+                groovyScriptEngine.setClassLoader(classLoader);
+            } else {
+                Thread.currentThread().setContextClassLoader(classLoader);
+            }
+        }
+
         Bindings bindings = pBindings;
         if (bindings == null) {
             bindings = scriptEngine.createBindings();
@@ -229,14 +243,14 @@ public abstract class JSR223TestElement extends ScriptingTestElement
                 throw ex;
             }
         } finally {
-            // 将当前类加载器设置回来，避免加载无法加载到系统类加载加载类
-            Thread.currentThread().setContextClassLoader(contextClassLoader);
+            // 恢复原始类加载器
+            Thread.currentThread().setContextClassLoader(loader);
         }
     }
 
     /**
      * @return boolean true if element is not compilable or if compilation succeeds
-     * @throws IOException if script is missing
+     * @throws IOException     if script is missing
      * @throws ScriptException if compilation fails
      */
     public boolean compile()
