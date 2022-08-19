@@ -34,23 +34,27 @@ public class MsClassLoader {
         return urlClassLoader;
     }
 
-    public static void loadJar(List<String> jarPaths, GroovyClassLoader groovyClassLoader) {
+    public static GroovyClassLoader getDynamic(List<String> jarPaths) {
         if (CollectionUtils.isNotEmpty(jarPaths)) {
-            LoggerUtil.info("开始初始化JAR[ " + JSON.toJSONString(jarPaths) + " ]");
+            GroovyClassLoader dynamicClassLoader = new GroovyClassLoader();
             jarPaths.forEach(path -> {
                 try {
                     if (StringUtils.isNotEmpty(path)) {
                         File jarFile = new File(path);
                         if (jarFile.exists()) {
-                            groovyClassLoader.addURL(jarFile.toURI().toURL());
+                            dynamicClassLoader.addURL(jarFile.toURI().toURL());
+                            LoggerUtil.info("初始化JAR[ " + path + " ] 成功");
+                        } else {
+                            LoggerUtil.info("JAR文件：【" + path + "】已经丢失，加载失败");
                         }
                     }
-                    LoggerUtil.info("完成初始化JAR[ " + path + " ]");
                 } catch (Exception ex) {
                     LoggerUtil.error("加载JAR包失败：", ex);
                 }
             });
+            return dynamicClassLoader;
         }
+        return null;
     }
 
     private MsClassLoader() {
