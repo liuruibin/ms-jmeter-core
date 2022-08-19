@@ -62,6 +62,10 @@ public class TestPlan extends AbstractTestElement implements Serializable, TestS
 
     private static final String BASEDIR = "basedir";
 
+    private static final String JAR_PATH = "JAR_PATH";
+
+    public static final String MS_CLASS_LOADER = "MS_CLASS_LOADER";
+
     private transient List<AbstractThreadGroup> threadGroups = new ArrayList<>();
 
     // There's only 1 test plan, so can cache the mode here
@@ -270,17 +274,16 @@ public class TestPlan extends AbstractTestElement implements Serializable, TestS
             }
         }
         // 使用自定义加载器
-        String jarStr = this.getPropertyAsString("JAR_PATH");
-        LoggerUtil.info(this.getName() + "开始加载自定义JAR", jarStr);
-        if (StringUtils.isNotEmpty(jarStr)) {
-            List<String> jarPaths = JSON.parseObject(jarStr, List.class);
-            GroovyClassLoader loader = new GroovyClassLoader();
-            MsClassLoader.loadJar(jarPaths, loader);
+        String pathStr = this.getPropertyAsString(JAR_PATH);
+        LoggerUtil.info("开始加载自定义JAR：[ " + pathStr + " ]", this.getName());
+        if (StringUtils.isNotEmpty(pathStr)) {
+            List<String> jarPaths = JSON.parseObject(pathStr, List.class);
+            GroovyClassLoader loader = MsClassLoader.getDynamic(jarPaths);
             if (loader != null) {
-                JMeterContextService.getContext().getVariables().putObject("MS_CLASS_LOADER", loader);
+                JMeterContextService.getContext().getVariables().putObject(MS_CLASS_LOADER, loader);
             }
         }
-        LoggerUtil.info(this.getName() + "自定义JAR加载完成");
+        LoggerUtil.info("自定义JAR加载完成", this.getName());
     }
 
     /**
