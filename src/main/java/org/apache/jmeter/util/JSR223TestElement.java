@@ -23,6 +23,7 @@ import org.apache.commons.collections4.map.LRUMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.samplers.Sampler;
+import org.apache.jmeter.testelement.TestPlan;
 import org.apache.jmeter.testelement.TestStateListener;
 import org.apache.jmeter.threads.JMeterContext;
 import org.apache.jmeter.threads.JMeterContextService;
@@ -165,8 +166,9 @@ public abstract class JSR223TestElement extends ScriptingTestElement
             throws IOException, ScriptException {
         ClassLoader loader = Thread.currentThread().getContextClassLoader();
         // 设置自定义类加载器
-        if (JMeterContextService.getContext().getVariables().getObject("MS_CLASS_LOADER") != null) {
-            GroovyClassLoader classLoader = (GroovyClassLoader) JMeterContextService.getContext().getVariables().getObject("MS_CLASS_LOADER");
+        Object dynamicClassLoader = JMeterContextService.getContext().getVariables().getObject(TestPlan.MS_CLASS_LOADER);
+        if (dynamicClassLoader != null) {
+            GroovyClassLoader classLoader = (GroovyClassLoader) dynamicClassLoader;
             if (scriptEngine instanceof GroovyScriptEngineImpl) {
                 GroovyScriptEngineImpl groovyScriptEngine = (GroovyScriptEngineImpl) scriptEngine;
                 groovyScriptEngine.setClassLoader(classLoader);
