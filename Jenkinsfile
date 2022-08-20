@@ -4,7 +4,9 @@ pipeline {
             label 'metersphere'
         }
     }
-    options { quietPeriod(600) }
+    triggers {
+        pollSCM('0 * * * *')
+    }
     stages {
         stage('Preparation') {
             steps {
