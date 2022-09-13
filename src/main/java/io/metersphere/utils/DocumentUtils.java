@@ -1,6 +1,5 @@
 package io.metersphere.utils;
 
-import com.alibaba.fastjson.JSON;
 import com.google.gson.Gson;
 import io.metersphere.vo.Condition;
 import io.metersphere.vo.ElementCondition;
@@ -11,7 +10,6 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.jmeter.util.JMeterUtils;
 import org.apache.oro.text.regex.Pattern;
 
-import java.lang.reflect.Array;
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +18,7 @@ public class DocumentUtils {
 
     public static boolean documentChecked(Object subj, String condition, ThreadLocal<DecimalFormat> decimalFormatter) {
         if (StringUtils.isNotEmpty(condition)) {
-            ElementCondition elementCondition = JSON.parseObject(condition, ElementCondition.class);
+            ElementCondition elementCondition = JSONUtil.parseObject(condition, ElementCondition.class);
             boolean isTrue = true;
             if (CollectionUtils.isNotEmpty(elementCondition.getConditions())) {
                 for (Condition item : elementCondition.getConditions()) {
@@ -172,7 +170,7 @@ public class DocumentUtils {
     public static String documentMsg(String name, Object resValue, String condition) {
         String msg = "";
         if (StringUtils.isNotEmpty(condition)) {
-            ElementCondition elementCondition = JSON.parseObject(condition, ElementCondition.class);
+            ElementCondition elementCondition = JSONUtil.parseObject(condition, ElementCondition.class);
             if (CollectionUtils.isNotEmpty(elementCondition.getConditions())) {
                 for (Condition item : elementCondition.getConditions()) {
                     if (StringUtils.equalsAny(item.getKey(), "value_eq", "value_not_eq", "value_in")) {

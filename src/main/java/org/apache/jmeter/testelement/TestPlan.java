@@ -17,9 +17,9 @@
 
 package org.apache.jmeter.testelement;
 
-import com.alibaba.fastjson.JSON;
 import groovy.lang.GroovyClassLoader;
 import io.metersphere.jmeter.MsClassLoader;
+import io.metersphere.utils.JSONUtil;
 import io.metersphere.utils.LoggerUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.NewDriver;
@@ -277,7 +277,7 @@ public class TestPlan extends AbstractTestElement implements Serializable, TestS
         String pathStr = this.getPropertyAsString(JAR_PATH);
         LoggerUtil.info("开始加载自定义JAR：[ " + pathStr + " ]", this.getName());
         if (StringUtils.isNotEmpty(pathStr)) {
-            List<String> jarPaths = JSON.parseObject(pathStr, List.class);
+            List<String> jarPaths = JSONUtil.parseObject(pathStr, List.class);
             GroovyClassLoader loader = MsClassLoader.getDynamic(jarPaths);
             if (loader != null) {
                 JMeterContextService.getContext().getVariables().putObject(MS_CLASS_LOADER, loader);

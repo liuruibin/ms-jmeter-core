@@ -1,6 +1,5 @@
 package io.metersphere.utils;
 
-import com.alibaba.fastjson.JSON;
 import io.github.ningyu.jmeter.plugin.dubbo.sample.DubboSample;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -55,7 +54,7 @@ public class JMeterVars {
                             for (int i = 1; i < nrv + 1; i++) {
                                 data.add(vars.get(item + "_" + i));
                             }
-                            String array = JSON.toJSONString(data);
+                            String array = JSONUtil.toJSONString(data);
                             jMeterVariables.put(item, array);
                         }
                     }
