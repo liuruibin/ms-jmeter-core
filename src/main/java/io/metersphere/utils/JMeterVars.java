@@ -54,7 +54,7 @@ public class JMeterVars {
                             for (int i = 1; i < nrv + 1; i++) {
                                 data.add(vars.get(item + "_" + i));
                             }
-                            String array = JSONUtil.toJSONString(data);
+                            String array = JsonUtils.toJSONString(data);
                             jMeterVariables.put(item, array);
                         }
                     }

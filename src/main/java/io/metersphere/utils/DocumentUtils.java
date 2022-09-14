@@ -18,7 +18,7 @@ public class DocumentUtils {
 
     public static boolean documentChecked(Object subj, String condition, ThreadLocal<DecimalFormat> decimalFormatter) {
         if (StringUtils.isNotEmpty(condition)) {
-            ElementCondition elementCondition = JSONUtil.parseObject(condition, ElementCondition.class);
+            ElementCondition elementCondition = JsonUtils.parseObject(condition, ElementCondition.class);
             boolean isTrue = true;
             if (CollectionUtils.isNotEmpty(elementCondition.getConditions())) {
                 for (Condition item : elementCondition.getConditions()) {
@@ -170,7 +170,7 @@ public class DocumentUtils {
     public static String documentMsg(String name, Object resValue, String condition) {
         String msg = "";
         if (StringUtils.isNotEmpty(condition)) {
-            ElementCondition elementCondition = JSONUtil.parseObject(condition, ElementCondition.class);
+            ElementCondition elementCondition = JsonUtils.parseObject(condition, ElementCondition.class);
             if (CollectionUtils.isNotEmpty(elementCondition.getConditions())) {
                 for (Condition item : elementCondition.getConditions()) {
                     if (StringUtils.equalsAny(item.getKey(), "value_eq", "value_not_eq", "value_in")) {

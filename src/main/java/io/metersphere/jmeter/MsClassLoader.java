@@ -1,7 +1,7 @@
 package io.metersphere.jmeter;
 
 import groovy.lang.GroovyClassLoader;
-import io.metersphere.utils.JSONUtil;
+import io.metersphere.utils.JsonUtils;
 import io.metersphere.utils.LoggerUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -15,7 +15,7 @@ public class MsClassLoader {
         if (CollectionUtils.isEmpty(jarPaths)) {
             return null;
         }
-        LoggerUtil.info("开始初始化JAR[ " + JSONUtil.toJSONString(jarPaths) + " ]");
+        LoggerUtil.info("开始初始化JAR[ " + JsonUtils.toJSONString(jarPaths) + " ]");
         MsDynamicClassLoader urlClassLoader = new MsDynamicClassLoader();
         jarPaths.forEach(path -> {
             try {

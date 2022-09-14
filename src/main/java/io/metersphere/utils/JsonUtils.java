@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-public class JSONUtil {
+public class JsonUtils {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     static {

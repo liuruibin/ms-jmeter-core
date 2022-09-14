@@ -4,7 +4,7 @@ import io.metersphere.constants.BackendListenerConstants;
 import io.metersphere.constants.HttpMethodConstants;
 import io.metersphere.dto.*;
 import io.metersphere.utils.JMeterVars;
-import io.metersphere.utils.JSONUtil;
+import io.metersphere.utils.JsonUtils;
 import io.metersphere.utils.ListenerUtil;
 import io.metersphere.utils.LoggerUtil;
 import org.apache.commons.collections4.CollectionUtils;
@@ -52,10 +52,10 @@ public class JMeterBase {
         arguments.addArgument(BackendListenerConstants.RUN_TYPE.name(), request.getRunType());
         arguments.addArgument(BackendListenerConstants.RETRY_ENABLE.name(), String.valueOf(request.isRetryEnable()));
         if (MapUtils.isNotEmpty(request.getExtendedParameters())) {
-            arguments.addArgument(BackendListenerConstants.EPT.name(), JSONUtil.toJSONString(request.getExtendedParameters()));
+            arguments.addArgument(BackendListenerConstants.EPT.name(), JsonUtils.toJSONString(request.getExtendedParameters()));
         }
         if (request.getKafkaConfig() != null && request.getKafkaConfig().size() > 0) {
-            arguments.addArgument(BackendListenerConstants.KAFKA_CONFIG.name(), JSONUtil.toJSONString(request.getKafkaConfig()));
+            arguments.addArgument(BackendListenerConstants.KAFKA_CONFIG.name(), JsonUtils.toJSONString(request.getKafkaConfig()));
         }
         backendListener.setArguments(arguments);
         backendListener.setClassname(listenerClazz);
