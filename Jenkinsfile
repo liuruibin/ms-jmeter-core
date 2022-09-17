@@ -7,6 +7,9 @@ pipeline {
     triggers {
         pollSCM('0 * * * *')
     }
+    environment {
+        JAVA_HOME = '/opt/jdk-11'
+    }
     stages {
         stage('Preparation') {
             steps {
