@@ -25,6 +25,13 @@ pipeline {
                 }
             }
         }
+        stage('SDK XPack Interface') {
+            steps {
+                script {
+                    build job:"../metersphere-next/${BRANCH_NAME}", quietPeriod:10, parameters: [string(name: 'buildSdk', value: String.valueOf("true"))]
+                }
+            }
+        }
         stage('Build/Test') {
             steps {
                 configFileProvider([configFile(fileId: 'metersphere-maven', targetLocation: 'settings.xml')]) {
