@@ -26,6 +26,12 @@ pipeline {
             }
         }
         stage('SDK XPack Interface') {
+            when {
+                anyOf {
+                    branch "main"
+                    branch pattern: "^v\\d+\\.\\d+\$", comparator: "REGEXP";
+                }
+            }
             steps {
                 script {
                     build job:"../metersphere-next/${BRANCH_NAME}", quietPeriod:10, parameters: [string(name: 'buildParent', value: String.valueOf("true"))]
