@@ -34,7 +34,7 @@ pipeline {
             }
             steps {
                 script {
-                    build job:"../metersphere-next/${BRANCH_NAME}", quietPeriod:10, parameters: [string(name: 'buildParent', value: String.valueOf("true"))]
+                    build job:"../metersphere/${BRANCH_NAME}", quietPeriod:10, parameters: [string(name: 'buildParent', value: String.valueOf("true"))]
                 }
             }
         }
