@@ -32,7 +32,7 @@ import java.io.OutputStream;
  * the end of the stream is reached.
  * The EOL byte is defined by the property "tcp.eolByte".
  */
-public abstract class MsTCPClientImpl extends TCPSampler {
+public class MsTCPClientImpl extends TCPClientImpl {
     private static final Logger log = LoggerFactory.getLogger(MsTCPClientImpl.class);
 
     private static final int EOL_INT = JMeterUtils.getPropDefault("tcp.eolByte", 1000); // $NON-NLS-1$
