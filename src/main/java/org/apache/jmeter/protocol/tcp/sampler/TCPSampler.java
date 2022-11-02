@@ -387,13 +387,15 @@ public class TCPSampler extends AbstractSampler implements ThreadListener, Inter
                 String req = getRequestData();
                 // TODO handle filenames
                 res.setSamplerData(req);
+                String in = null;
                 //替换原来的编码
                 if (protocolHandler instanceof MsTCPClientImpl) {
                     ((MsTCPClientImpl) protocolHandler).write(os, req , getCharset());
+                     in = ((MsTCPClientImpl) protocolHandler).read(is, res , getCharset());
                 } else {
                     protocolHandler.write(os, req);
+                     in = protocolHandler.read(is, res);
                 }
-                String in = protocolHandler.read(is, res);
                 isSuccessful = setupSampleResult(res, in, null, protocolHandler);
             }
         } catch (ReadException ex) {
