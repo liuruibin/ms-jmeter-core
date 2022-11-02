@@ -17,13 +17,12 @@
 
 package org.apache.jmeter.protocol.tcp.sampler;
 
+import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.util.JMeterUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 
 /**
  * Sample TCPClient implementation.
@@ -55,8 +54,6 @@ public class MsTCPClientImpl extends TCPClientImpl {
             os.flush();
         }
     }
-
-
     private String showEOL(final String input) {
         StringBuilder sb = new StringBuilder(input.length()*2);
         for(int i=0; i < input.length(); i++) {
@@ -70,5 +67,42 @@ public class MsTCPClientImpl extends TCPClientImpl {
             }
         }
         return sb.toString();
+    }
+
+    public String read(InputStream is, SampleResult sampleResult, String charset) throws ReadException {
+        ByteArrayOutputStream w = new ByteArrayOutputStream();
+        try {
+            byte[] buffer = new byte[4096];
+            int x;
+            boolean first = true;
+            while ((x = is.read(buffer)) > -1) {
+                if (first) {
+                    sampleResult.latencyEnd();
+                    first = false;
+                }
+                w.write(buffer, 0, x);
+                if (useEolByte && (buffer[x - 1] == eolByte)) {
+                    break;
+                }
+            }
+
+            // do we need to close byte array (or flush it?)
+            if(log.isDebugEnabled()) {
+                log.debug("Read: {}\n{}", w.size(), w.toString(charset));
+            }
+            return w.toString(charset);
+        } catch (UnsupportedEncodingException e) {
+            throw new ReadException("Error decoding bytes from server with " + charset + ", bytes read: " + w.size(),
+                    e, "<Read bytes with bad encoding>");
+        } catch (IOException e) {
+            String decodedBytes;
+            try {
+                decodedBytes = w.toString(charset);
+            } catch (UnsupportedEncodingException uee) {
+                // we should never get here, as it would have crashed earlier
+                decodedBytes = "<Read bytes with bad encoding>";
+            }
+            throw new ReadException("Error reading from server, bytes read: " + w.size(), e, decodedBytes);
+        }
     }
 }
