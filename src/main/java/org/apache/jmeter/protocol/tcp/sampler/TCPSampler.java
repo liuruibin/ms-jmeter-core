@@ -124,7 +124,7 @@ public class TCPSampler extends AbstractSampler implements ThreadListener, Inter
     private static final ThreadLocal<Map<String, Object>> tp =
             ThreadLocal.withInitial(HashMap::new);
 
-    private transient MsTCPClientImpl protocolHandler;
+    private transient TCPClient protocolHandler;
 
     private transient boolean firstSample; // Are we processing the first sample?
 
@@ -319,14 +319,14 @@ public class TCPSampler extends AbstractSampler implements ThreadListener, Inter
 
     }
 
-    private MsTCPClientImpl getProtocol() {
-        MsTCPClientImpl tcpClient = null;
+    private TCPClient getProtocol() {
+        TCPClient tcpClient = null;
         Class<?> javaClass = getClass(getClassname());
         if (javaClass == null){
             return null;
         }
         try {
-            tcpClient = (MsTCPClientImpl) javaClass.getDeclaredConstructor().newInstance();
+            tcpClient = (TCPClient) javaClass.getDeclaredConstructor().newInstance();
             if (getPropertyAsString(EOL_BYTE, "").length()>0){
                 tcpClient.setEolByte(getEolByte());
                 log.info("Using eolByte={}", getEolByte());
@@ -388,7 +388,11 @@ public class TCPSampler extends AbstractSampler implements ThreadListener, Inter
                 // TODO handle filenames
                 res.setSamplerData(req);
                 //替换原来的编码
-                protocolHandler.write(os, req , getCharset());
+                if (protocolHandler instanceof MsTCPClientImpl) {
+                    ((MsTCPClientImpl) protocolHandler).write(os, req , getCharset());
+                } else {
+                    protocolHandler.write(os, req);
+                }
                 String in = protocolHandler.read(is, res);
                 isSuccessful = setupSampleResult(res, in, null, protocolHandler);
             }
