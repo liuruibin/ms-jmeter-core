@@ -53,8 +53,6 @@ public abstract class JSR223TestElement extends ScriptingTestElement
         implements Serializable, TestStateListener {
     private static final long serialVersionUID = 232L;
 
-    private LoadJarService loadJarService;
-
     private static final Logger logger = LoggerFactory.getLogger(JSR223TestElement.class);
     /**
      * Cache of compiled scripts
@@ -173,15 +171,13 @@ public abstract class JSR223TestElement extends ScriptingTestElement
         if (scriptEngine instanceof GroovyScriptEngineImpl) {
             try {
                 GroovyScriptEngineImpl groovyScriptEngine = (GroovyScriptEngineImpl) scriptEngine;
-                if (loadJarService == null) {
-                    loadJarService = Class.forName("io.metersphere.api.jmeter.MsGroovyLoadJarService", true,
+                LoadJarService loadJarService = Class.forName("io.metersphere.api.jmeter.MsGroovyLoadJarService", true,
                             Thread.currentThread().getContextClassLoader())
                             .asSubclass(LoadJarService.class)
                             .getDeclaredConstructor().newInstance();
                     if (loadJarService != null) {
                         loadJarService.loadGroovyJar(groovyScriptEngine.getClassLoader());
                     }
-                }
             } catch (ClassNotFoundException ignore) {
                 // 忽略这个异常
             } catch (Exception e) {
