@@ -15,7 +15,7 @@
         <nacos.version>1.4.1</nacos.version>
         <dubbo.version>2.7.15</dubbo.version>
         <groovy.version>3.0.8</groovy.version>
-        <metersphere-jmeter-functions.version>1.4</metersphere-jmeter-functions.version>
+        <metersphere-jmeter-functions.version>1.5</metersphere-jmeter-functions.version>
     </properties>
 
     <name>ms-jmeter-core</name>
