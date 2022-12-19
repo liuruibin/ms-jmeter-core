@@ -1,6 +1,6 @@
 # MeterSphere JMeter 公共依赖
 
-## 自 v2.4版本开始，本工程代码已经移动到 `metersphere/framework/sdk-parent/jmeter` 中
+## 自 v2.4版本开始，本工程代码已经移动到 `metersphere/framework/sdk-parent/jmeter` 中, 本工程 `master` 分支对应 v1.20 LTS版本
 
 ## 问题反馈
 
