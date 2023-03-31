@@ -653,7 +653,13 @@ public class JMeterThread implements Runnable, Interruptible {
             }
         }
         try {
-            return sampler.sample(null);
+            SampleResult sample = sampler.sample(null);
+            if (StringUtils.equalsIgnoreCase(sampler.getName(),"WebDriverSampler")) {
+                if (!sample.isSuccessful()) {
+                    throw new IllegalStateException(sample.getResponseMessage());
+                }
+            }
+            return sample;
         } finally {
             if (!sampleMonitors.isEmpty()) {
                 for (SampleMonitor sampleMonitor : sampleMonitors) {
